@@ -1,6 +1,6 @@
 # Define the task name and task action
 $taskName = "Hypnotic_Generator"
-$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\itshypnotic\call_hypnotic.py' -WorkingDirectory 'D:\sentiMation\generators\itshypnotic'
+$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\pokemon\call_pokemon.py' -WorkingDirectory 'D:\sentiMation\generators\pokemon'
 
 # Check if the task already exists
 $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
