@@ -8,7 +8,7 @@ import shutil
 from datetime import datetime
 
 # Set up logging
-logging.basicConfig(filename="pokemon__cards_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+logging.basicConfig(filename="pokemon_cards_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 # Function to read the chosen prompt from a file
 def read_chosen_prompt():
@@ -63,7 +63,7 @@ animate_diff_args = {
     "fps": 30,
     "loop_number": 0,
     "closed_loop": "A",
-    "batch_size": 12,
+    "batch_size": 8,
     "stride": 1,
     "overlap": -1,
     "interp": "NO",

@@ -12,3 +12,5 @@ shrek_prompts.log
 chosen_prompt.txt
 
 *.png
+
+*.log
