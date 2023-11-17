@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 
 # Set up logging
-logging.basicConfig(filename="hypnotic_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+logging.basicConfig(filename="minds_eye_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 # Function to read the chosen prompt from a file
 def read_chosen_prompt():
@@ -22,11 +22,11 @@ animate_diff_args = {
     "model": "animatediffMotion_v15V2.ckpt",
     "format": ['MP4'],
     "enable": True,
-    "video_length": 600,
+    "video_length": 300,
     "fps": 30,
     "loop_number": 0,
     "closed_loop": "A",
-    "batch_size": 1,
+    "batch_size": 16,
     "stride": 1,
     "overlap": -1,
     "interp": "NO",

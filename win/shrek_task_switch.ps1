@@ -8,7 +8,7 @@ $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
 # If task doesn't exist, create it
 if (-not $taskExists) {
     Write-Host "Task does not exist. Creating new task."
-    $taskTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Friday -At 9am
+    $taskTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Friday -At 6am
     $taskSettings = New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
     $principal = New-ScheduledTaskPrincipal -UserId "PALADIN1\josh" -LogonType ServiceAccount -RunLevel Highest
 

@@ -26,7 +26,7 @@ animate_diff_args = {
     "fps": 30,
     "loop_number": 0,
     "closed_loop": "A",
-    "batch_size": 1,
+    "batch_size": 16,
     "stride": 1,
     "overlap": -1,
     "interp": "NO",
