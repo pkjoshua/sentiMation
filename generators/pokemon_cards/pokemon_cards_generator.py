@@ -1,11 +1,14 @@
 import requests
+import random
 import base64
 import json
 import logging
+import os 
+import shutil
 from datetime import datetime
 
 # Set up logging
-logging.basicConfig(filename="pokemon_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+logging.basicConfig(filename="pokemon__cards_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 # Function to read the chosen prompt from a file
 def read_chosen_prompt():
@@ -14,19 +17,53 @@ def read_chosen_prompt():
         logging.info(f"Chosen prompt: {chosen_prompt}")
         return chosen_prompt
 
+# Function to select a random image and move it after use
+def select_and_move_image(source_dir, used_dir):
+    files = [file for file in os.listdir(source_dir) if file.endswith(('.png', '.jpg', '.jpeg'))]
+    if not files:
+        logging.error("No images found in the directory.")
+        return None
+    selected_image = random.choice(files)
+    image_path = os.path.join(source_dir, selected_image)
+    used_image_path = os.path.join(used_dir, selected_image)
+    # Move the image after using
+    shutil.move(image_path, used_image_path)
+    return used_image_path
+
+# Define image directories
+source_directory = "assets"
+used_directory = "used"
+
+# Select a random image and move it after use
+image_path = select_and_move_image(source_directory, used_directory)
+if not image_path:
+    exit(1)  # Exit if no image is found
+
+# Read selected image file from disk
+with open(image_path, "rb") as image_file:
+    encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+
 # Define the API URL
-api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
+api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
+
+control_net_args = {
+    "input_image": encoded_image,
+    "module": "tile_resample",
+    "model": "control_v11f1e_sd15_tile_fp16 [3b860298]",
+    "weight": 1,
+    "pixel_perfect": True
+}
 
 # Define the payload for animate_diff_args
 animate_diff_args = {
-    "model": "animatediffMotion_v15V2.ckpt",
+    "model": "temporaldiffMotion_v10.ckpt",
     "format": ['MP4'],
     "enable": True,
-    "video_length": 600,
+    "video_length": 210,
     "fps": 30,
     "loop_number": 0,
     "closed_loop": "A",
-    "batch_size": 1,
+    "batch_size": 12,
     "stride": 1,
     "overlap": -1,
     "interp": "NO",
@@ -38,14 +75,16 @@ chosen_prompt = read_chosen_prompt()
 
 # Define the JSON payload
 json_payload = {
+    "init_images": [encoded_image],
     "prompt": chosen_prompt,
     "negative_prompt": "Compression artifacts, nudity, nsfw, Bad art, worst quality, low quality, plastic, fake, bad limbs, conjoined, featureless, bad features, incorrect objects, watermark, piercings, logo, watermark, blurry, grainy",
-    "batch_size": 1,
+    "batch_size": 2,
     "sampler_name": "Euler a",
     "steps": 30,
-    "cfg_scale": 10,
-    "width": 512,
-    "height": 512,
+    "cfg_scale": 7,
+    "denoising_strength": 0.6,
+    "width": 490,
+    "height": 684,
     "alwayson_scripts": {
         "AnimateDiff": {"args": [animate_diff_args]}
     }

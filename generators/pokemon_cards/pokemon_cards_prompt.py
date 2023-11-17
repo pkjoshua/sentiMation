@@ -1,9 +1,10 @@
 import random
 import logging
+import textwrap
 from datetime import datetime
 
 # Set up logging
-logging.basicConfig(filename='pokemon_log.log', level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(filename='pokemon_cards_log.log', level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Function to generate a psychedelic prompt
 def generate_psychedelic_prompt():
