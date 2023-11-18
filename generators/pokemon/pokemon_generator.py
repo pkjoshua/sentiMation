@@ -9,7 +9,7 @@ import shutil
 from datetime import datetime
 
 # Set up logging
-logging.basicConfig(filename="pokemon_cards_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+logging.basicConfig(filename="pokemon_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 def read_chosen_prompt():
     with open("chosen_prompt.txt", "r", encoding='utf-8') as f:  # Specify UTF-8 encoding here
@@ -51,7 +51,7 @@ animate_diff_args = {
     "model": "mm_sd_v15_v2.ckpt",
     "format": ["MP4", "PNG"],
     "enable": True,
-    "video_length": 225,
+    "video_length": 30,
     "fps": 30,
     "loop_number": 0,
     "closed_loop": "A",

@@ -6,7 +6,7 @@ import json
 import logging
 
 # Initialize logging
-logging.basicConfig(filename="pokemon_cards_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+logging.basicConfig(filename="pokemon_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 def upscale_frame(frame_path, api_url, headers, json_payload_template):
     with open(frame_path, "rb") as image_file:
@@ -48,7 +48,7 @@ def process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_
         if upscaled_image:
             with open(os.path.join(upscale_dir, f"upscaled_frame{i}.png"), 'wb') as file:
                 file.write(upscaled_image)
-
+                
 # API configuration
 api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
 headers = {"Content-Type": "application/json"}
