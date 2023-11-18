@@ -41,6 +41,7 @@ api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
 json_payload = {
     "prompt": "cute, demon girl, sexy, revealing, detailed, portrait, cleavage",
     "negative_prompt": "bad quality, deformed, boring",
+    "resize_mode": 0,
     "batch_size": 1,
     "steps": 50,
     "cfg_scale": 7,

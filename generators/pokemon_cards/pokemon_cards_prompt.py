@@ -10,15 +10,20 @@ logging.basicConfig(filename='pokemon_cards_log.log', level=logging.INFO, format
 def generate_psychedelic_prompt():
     prompts = [
         textwrap.dedent("""\
-         Psychedelic landscape in Alex Grey's style, vibrant and transcendent, ultra-detailed, luminous colors, 8k resolution"""),
+        Psychedelic landscape in Alex Grey's style, vibrant and transcendent, ultra-detailed, luminous colors, 8k resolution
+         """),
         textwrap.dedent("""\
-        Surreal visuals in the style of Salvador Dali, transformed into psychedelic art, ultra-sharp, dreamlike, 8k"""),
+        Surreal visuals in the style of Salvador Dali, transformed into psychedelic art, ultra-sharp, dreamlike, 8k
+        """),
         textwrap.dedent("""\
-         Psychedelic patterns in Amanda Sage's visionary style, full of symbolism, deep colors, high contrast, 8k"""),
+        Psychedelic patterns in Amanda Sage's visionary style, full of symbolism, deep colors, high contrast, 8k
+         """),
         textwrap.dedent("""\
-         Abstract hallucinatory art in the style of James R. Eads, fluid and morphing, vibrant, 8k, high dynamic range"""),
+        Abstract hallucinatory art in the style of James R. Eads, fluid and morphing, vibrant, 8k, high dynamic range
+         """),
         textwrap.dedent("""\
-        Phantasmagoric scenes in the style of Zdzisław Beksiński, psychedelic twist, dark yet vibrant, ultra HD""")
+        Phantasmagoric scenes in the style of Zdzisław Beksiński, psychedelic twist, dark yet vibrant, ultra HD
+        """)
     ]
     chosen_prompt = random.choice(prompts)
     logging.info(f"Chosen prompt: {chosen_prompt}")
