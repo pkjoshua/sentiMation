@@ -6,7 +6,7 @@ import json
 import logging
 
 # Initialize logging
-logging.basicConfig(filename="pokemon_cards_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+logging.basicConfig(filename="pokemon_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 def extract_frames(video_path, output_dir):
     vidcap = cv2.VideoCapture(video_path)

@@ -9,7 +9,7 @@ import shutil
 from datetime import datetime
 
 # Set up logging
-logging.basicConfig(filename="pokemon_cards_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+logging.basicConfig(filename="pokemon_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 # Function to read the chosen prompt from a file
 def read_chosen_prompt():
