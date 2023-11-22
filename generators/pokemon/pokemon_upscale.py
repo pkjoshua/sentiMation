@@ -64,13 +64,13 @@ json_payload_template = {
     "cfg_scale": 7,
     "denoising_strength": 0.3,
     "save_images": True,
-    "width": 980,
-    "height": 1368,
+    "width": 1422,
+    "height": 1422,
     "script_name": "ultimate sd upscale",
     "script_args": [
         None,           # _ (not used)
-        490,            # tile_width
-        684,            # tile_height
+        474,            # tile_width
+        474,            # tile_height
         8,              # mask_blur
         32,             # padding
         64,             # seams_fix_width
@@ -83,9 +83,9 @@ json_payload_template = {
         8,              # seams_fix_mask_blur
         0,              # seams_fix_type
         0,              # target_size_type
-        980,            # custom_width
-        1368,           # custom_height
-        3               # custom_scale
+        1422,            # custom_width
+        1422,           # custom_height
+        3              # custom_scale
     ]
 }
 

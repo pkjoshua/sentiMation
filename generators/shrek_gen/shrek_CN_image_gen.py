@@ -16,7 +16,20 @@ def generate_shrek_prompt():
         "Shrek driving a futuristic motorcycle through the city, cyberpunk, cyber, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
         "Shrek evading an apocalyptic robot, detailed, 4k, high quality, clear, smooth, cinematic, intense, <lora:shrek:0.2>",
         "Shrek as a king of an alien planet, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek riding a futuristic motorcycle, tron, cyber, blue, virtual world, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>"
+        "Shrek riding a futuristic motorcycle, tron, cyber, blue, virtual world, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
+        "Shrek fighting against an alien invasion, above earth, space, starts, cyber, high contrast, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
+        "Shrek defeating a golden knight, in a castle, swords, armor, dark fantasy, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
+        "Shrek peeling an onion while cooking, in a swamp hut, stove, utencils, kitchen, pans, pot, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>"
+        "Shrek eating a banana, jungle, monkeys, trees, vines, luscious jungle, green, vegetation, flowers, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
+        "Shrek riding a dinosaur through the mountains, rocky terrain, cliffs, grass, eagles, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
+        "Shrek typing at a computer, hacking, blackhat, computer screen, nerdy, soda, moms house, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
+        "Shrek hunting a wild boar, fantasy, medieval, spear, tusks, grassland, river, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
+        "Shrek golfing at a country club, driver, grass, golf cart, flag, country club in the background, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
+        "Shrek as a priest at a church, reading the gospel, (wine:1.2), (bread:1.2), christian, cross, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
+        "Shrek as a yoga instructor, yoga retreat, wooden floor, scenic view, stretching, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.4>",
+        "Shrek boiling a large lobster inside of a pot, steam, fire, claws, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.3>",
+        "Shrek scrolling on his phone, in a futurisitc city, digital billboards, holograms, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.3>",
+        "Shrek writing a best selling novel, at a desk, in a cabin, fireplace, warmth, paper, quill, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.3>"
     ]
     chosen_prompt = random.choice(prompts)
     logging.info(f"{datetime.now()} - Chosen prompt: {chosen_prompt}")
