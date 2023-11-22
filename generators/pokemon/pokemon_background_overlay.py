@@ -47,7 +47,7 @@ background_path = "background.png"  # Path to the background image
 mask_path = "current_mask.png"  # Path to the mask image
 frames_dir = "frames"
 overlayed_frames_dir = "overlayed_frames"
-output_video_path = "final_output.mp4"
+output_video_path = "lowscale_overlay.mp4"
 
 # Ensure directories exist
 os.makedirs(frames_dir, exist_ok=True)

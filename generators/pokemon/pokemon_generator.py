@@ -25,7 +25,7 @@ def resize_image_to_even_dimensions(image):
         height -= 1
     return image.resize((width, height), Image.Resampling.LANCZOS)
 
-def create_mask(image_path, mask_path):
+def create_mask(image_path):
     with Image.open(image_path) as img:
         img = img.convert("RGBA")
         new_data = []
@@ -37,7 +37,12 @@ def create_mask(image_path, mask_path):
         img.putdata(new_data)
         img = img.convert("RGB")
         img = resize_image_to_even_dimensions(img)
-        img.save(mask_path)
+
+        # Save the mask as 'current_mask.png' in the same directory as the script
+        current_mask_path = os.path.join(os.path.dirname(__file__), "current_mask.png")
+        img.save(current_mask_path)
+
+        return img
 
 def process_image(image_path, used_dir):
     # Resize original image
@@ -46,9 +51,12 @@ def process_image(image_path, used_dir):
         resized_image_path = os.path.join(used_dir, os.path.basename(image_path))
         img.save(resized_image_path)
 
-    # Create mask
+    # Create mask and save as 'current_mask.png'
+    mask = create_mask(resized_image_path)
+
+    # Save another copy of the mask in the used directory
     mask_path = os.path.join(used_dir, f"mask_{os.path.basename(image_path)}")
-    create_mask(resized_image_path, mask_path)
+    mask.save(mask_path)
 
     return resized_image_path, mask_path
 
@@ -62,6 +70,8 @@ def select_and_move_image(source_dir, used_dir):
 
     # Process the image and its mask
     resized_image_path, mask_path = process_image(image_path, used_dir)
+
+    os.remove(image_path)
 
     return resized_image_path, mask_path
 

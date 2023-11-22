@@ -16,3 +16,7 @@ chosen_prompt.txt
 *.log
 
 *.mp4
+
+*.txt
+
+*.mp3

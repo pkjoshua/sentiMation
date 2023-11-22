@@ -1,9 +1,9 @@
-import cv2
 import os
 import requests
 import base64
 import json
 import logging
+import cv2
 
 # Initialize logging
 logging.basicConfig(filename="pokemon_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
@@ -27,28 +27,24 @@ def upscale_frame(frame_path, api_url, headers, json_payload_template):
         logging.error(f"API call failed for {frame_path}. Status Code: {response.status_code}, Response: {response.text}")
         return None
 
-def extract_frames(video_path, output_dir):
-    vidcap = cv2.VideoCapture(video_path)
-    success, image = vidcap.read()
-    count = 0
+def create_video_from_frames(frame_folder, output_video_path, fps=30):
+    frame_files = sorted([os.path.join(frame_folder, file) for file in os.listdir(frame_folder) if file.endswith('.png')])
+    if not frame_files:
+        logging.error("No frames found in the folder.")
+        return
 
-    while success:
-        frame_path = os.path.join(output_dir, f"frame{count}.png")
-        cv2.imwrite(frame_path, image)     
-        success, image = vidcap.read()
-        count += 1
-    
-    return count  # Return the total number of frames extracted
+    # Get size of the first frame
+    frame = cv2.imread(frame_files[0])
+    height, width, layers = frame.shape
+    size = (width, height)
 
-def process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_payload_template):
-    frame_count = extract_frames(video_path, lowscale_dir)
-    for i in range(frame_count):
-        frame_path = os.path.join(lowscale_dir, f"frame{i}.png")
-        upscaled_image = upscale_frame(frame_path, api_url, headers, json_payload_template)
-        if upscaled_image:
-            with open(os.path.join(upscale_dir, f"upscaled_frame{i}.png"), 'wb') as file:
-                file.write(upscaled_image)
-                
+    out = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, size)
+
+    for frame_file in frame_files:
+        frame = cv2.imread(frame_file)
+        out.write(frame)
+    out.release()
+
 # API configuration
 api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
 headers = {"Content-Type": "application/json"}
@@ -90,10 +86,19 @@ json_payload_template = {
 }
 
 # Directories
-lowscale_dir = "lowscale"
+overlayed_frames_dir = "overlayed_frames"
 upscale_dir = "upscale"
-os.makedirs(lowscale_dir, exist_ok=True)
+os.makedirs(overlayed_frames_dir, exist_ok=True)
 os.makedirs(upscale_dir, exist_ok=True)
 
-# Process the video
-process_video("lowscale.mp4", lowscale_dir, upscale_dir, api_url, headers, json_payload_template)
+# Upscale each frame in the overlayed_frames directory
+for frame_file in sorted(os.listdir(overlayed_frames_dir)):
+    frame_path = os.path.join(overlayed_frames_dir, frame_file)
+    if frame_file.endswith('.png'):
+        upscaled_image = upscale_frame(frame_path, api_url, headers, json_payload_template)
+        if upscaled_image:
+            with open(os.path.join(upscale_dir, f"upscaled_{frame_file}"), 'wb') as file:
+                file.write(upscaled_image)
+
+# Create an MP4 from the upscaled frames
+create_video_from_frames(upscale_dir, "output.mp4")
