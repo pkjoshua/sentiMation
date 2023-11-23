@@ -43,13 +43,18 @@ def create_mask(image_path):
         img.save(current_mask_path)
 
         return img
-
 def process_image(image_path, used_dir):
     # Resize original image
     with Image.open(image_path) as img:
         img = resize_image_to_even_dimensions(img)
+
+        # Save the resized image in the used directory
         resized_image_path = os.path.join(used_dir, os.path.basename(image_path))
         img.save(resized_image_path)
+
+        # Save another copy as 'current_pokemon.png' in the script's current directory
+        current_pokemon_path = os.path.join(os.path.dirname(__file__), "current_pokemon.png")
+        img.save(current_pokemon_path)
 
     # Create mask and save as 'current_mask.png'
     mask = create_mask(resized_image_path)
@@ -67,6 +72,11 @@ def select_and_move_image(source_dir, used_dir):
         return None, None
     selected_image = random.choice(files)
     image_path = os.path.join(source_dir, selected_image)
+
+    # Write the selected Pokemon name to pokemon_selected.txt
+    pokemon_name = os.path.splitext(selected_image)[0]
+    with open("pokemon_selected.txt", "w") as file:
+        file.write(pokemon_name)
 
     # Process the image and its mask
     resized_image_path, mask_path = process_image(image_path, used_dir)
@@ -99,8 +109,8 @@ animate_diff_args = {
     "model": "mm_sd_v15_v2.ckpt",
     "format": ["MP4", "PNG"],
     "enable": True,
-    "video_length": 20,
-    "fps": 10,
+    "video_length": 225,
+    "fps": 30,
     "loop_number": 0,
     "closed_loop": "R-P",
     "batch_size": 16,

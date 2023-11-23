@@ -1,67 +1,68 @@
-import cv2
 import os
-import datetime
-import shutil
+import moviepy.editor as mp
 import logging
 
-# Set up logging
+# Initialize logging
 logging.basicConfig(filename="pokemon_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
-def create_video_from_frames(frame_folder, output_folder, fps):
-    images = [img for img in os.listdir(frame_folder) if img.endswith(".png")]
-    images.sort(key=lambda x: int(x.split('frame')[1].split('.png')[0]))  # Sorting frames
+# Set paths and constants
+VIDEO_PATH = "upscale.mp4"
+POKEMON_SELECTED_FILE = "pokemon_selected.txt"
+SOUNDS_FOLDER = "assets/sound"
+FINAL_AUDIO_PATH = "final_video_with_audio.mp4"
+INTERMEDIATE_AUDIO_PATH = "intermediate_video_with_audio.mp4"
 
-    if not images:
-        logging.warning("No images found in the folder.")
-        return
+# Read the selected Pokemon name
+with open(POKEMON_SELECTED_FILE, "r") as file:
+    pokemon_name = file.read().strip()
+pokemon_audio_path = os.path.join(SOUNDS_FOLDER, f"{pokemon_name}.mp3")
+whos_that_pokemon_path = os.path.join(SOUNDS_FOLDER, "whos_that_pokemon.mp3")
 
-    # Determine the width and height from the first image
-    frame = cv2.imread(os.path.join(frame_folder, images[0]))
-    height, width, layers = frame.shape
-    size = (width, height)
+# Function to append audio to a video
+def append_audio(video_path, audio_path, start_time, final_audio_path):
+    try:
+        video = mp.VideoFileClip(video_path)
+        audio = mp.AudioFileClip(audio_path)
 
-    # Generate video file name with current date and time
-    current_datetime = datetime.datetime.now()
-    output_video_name = current_datetime.strftime("output_%m%d%Y%H%M") + ".mp4"
-    output_video_path = os.path.join(output_folder, output_video_name)
+        if start_time + audio.duration > video.duration:
+            # If the audio duration extends beyond the video's duration, loop the audio
+            audio = audio.set_duration(video.duration - start_time).loop(duration=video.duration - start_time)
 
-    # Initialize video writer
-    video = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, size)
+        new_audio = audio.set_start(start_time)
 
-    # Add frames to the video
-    for image in images:
-        video.write(cv2.imread(os.path.join(frame_folder, image)))
+        if video.audio:
+            # If the video already has an audio track, combine the two
+            new_audio = mp.CompositeAudioClip([video.audio, new_audio])
 
-    cv2.destroyAllWindows()
-    video.release()
+        video_with_audio = video.set_audio(new_audio)
+        video_with_audio.write_videofile(final_audio_path, codec='libx264', audio_codec='aac')
+        logging.info(f"Audio appended successfully to {final_audio_path}")
+    except Exception as e:
+        logging.error(f"Error processing video: {e}")
+    finally:
+        video.close()
 
-    logging.info(f"Video creation complete: {output_video_path}")
+try:
+    # Append 'whos_that_pokemon.mp3' first
+    if os.path.exists(VIDEO_PATH) and os.path.exists(whos_that_pokemon_path):
+        append_audio(VIDEO_PATH, whos_that_pokemon_path, start_time=0, final_audio_path=INTERMEDIATE_AUDIO_PATH)
+    else:
+        logging.error("Video or 'whos_that_pokemon.mp3' not found for the first appending process.")
 
-def clear_folder(folder):
-    for file in os.listdir(folder):
-        file_path = os.path.join(folder, file)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            logging.error(f'Failed to delete {file_path}. Reason: {e}')
+    # Read the selected Pokemon name
+    with open(POKEMON_SELECTED_FILE, "r") as file:
+        pokemon_name = file.read().strip()
+    pokemon_audio_path = os.path.join(SOUNDS_FOLDER, f"{pokemon_name}.mp3")
 
-# Specify the directories
-frame_folder = 'upscale'
-output_folder = 'output'
-lowscale_dir = 'lowscale'
-upscale_dir = 'upscale'
+    # Append Pokémon specific audio second at the 9-second mark
+    if os.path.exists(INTERMEDIATE_AUDIO_PATH) and os.path.exists(pokemon_audio_path):
+        append_audio(INTERMEDIATE_AUDIO_PATH, pokemon_audio_path, start_time=8, final_audio_path=FINAL_AUDIO_PATH)
+    else:
+        logging.error("Intermediate video or audio file for the Pokémon not found for the second appending process.")
 
-# Ensure output folder exists
-os.makedirs(output_folder, exist_ok=True)
-
-# Create the video
-create_video_from_frames(frame_folder, output_folder, fps=30)
-
-# Clear contents of lowscale and upscale folders
-clear_folder(lowscale_dir)
-clear_folder(upscale_dir)
-
-logging.info("Cleared contents of lowscale and upscale directories.")
+    # Clear intermediate file
+    if os.path.exists(INTERMEDIATE_AUDIO_PATH):
+        os.remove(INTERMEDIATE_AUDIO_PATH)
+        logging.info("Intermediate audio file removed.")
+except Exception as e:
+    logging.error(f"Unexpected error: {e}")

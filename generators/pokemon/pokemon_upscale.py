@@ -8,7 +8,7 @@ import cv2
 # Initialize logging
 logging.basicConfig(filename="pokemon_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
-def upscale_frame(frame_path, api_url, headers, json_payload_template):
+def upscale_frame(frame_path, api_url, headers, json_payload_template, frame_number):
     with open(frame_path, "rb") as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
 
@@ -22,13 +22,15 @@ def upscale_frame(frame_path, api_url, headers, json_payload_template):
         if 'images' in r and r['images']:
             base64_data = r['images'][0]
             image_data = base64.b64decode(base64_data)
-            return image_data
+            return image_data, frame_number
     else:
         logging.error(f"API call failed for {frame_path}. Status Code: {response.status_code}, Response: {response.text}")
-        return None
+        return None, frame_number
 
 def create_video_from_frames(frame_folder, output_video_path, fps=30):
-    frame_files = sorted([os.path.join(frame_folder, file) for file in os.listdir(frame_folder) if file.endswith('.png')])
+    frame_files = sorted([os.path.join(frame_folder, file) for file in os.listdir(frame_folder) if file.endswith('.png')],
+                         key=lambda x: int(x.split('_frame')[1].split('.png')[0]))  # Sorting based on zero-padded frame number
+
     if not frame_files:
         logging.error("No frames found in the folder.")
         return
@@ -92,13 +94,14 @@ os.makedirs(overlayed_frames_dir, exist_ok=True)
 os.makedirs(upscale_dir, exist_ok=True)
 
 # Upscale each frame in the overlayed_frames directory
-for frame_file in sorted(os.listdir(overlayed_frames_dir)):
+for i, frame_file in enumerate(sorted(os.listdir(overlayed_frames_dir))):
     frame_path = os.path.join(overlayed_frames_dir, frame_file)
     if frame_file.endswith('.png'):
-        upscaled_image = upscale_frame(frame_path, api_url, headers, json_payload_template)
+        upscaled_image, frame_number = upscale_frame(frame_path, api_url, headers, json_payload_template, i)
         if upscaled_image:
-            with open(os.path.join(upscale_dir, f"upscaled_{frame_file}"), 'wb') as file:
+            formatted_frame_number = f"{frame_number:04d}"  # Zero-padded frame number
+            with open(os.path.join(upscale_dir, f"upscaled_frame{formatted_frame_number}.png"), 'wb') as file:
                 file.write(upscaled_image)
 
 # Create an MP4 from the upscaled frames
-create_video_from_frames(upscale_dir, "output.mp4")
+create_video_from_frames(upscale_dir, "upscale.mp4")
