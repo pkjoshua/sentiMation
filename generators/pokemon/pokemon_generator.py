@@ -109,7 +109,7 @@ animate_diff_args = {
     "model": "mm_sd_v15_v2.ckpt",
     "format": ["MP4", "PNG"],
     "enable": True,
-    "video_length": 225,
+    "video_length": 240,
     "fps": 30,
     "loop_number": 0,
     "closed_loop": "R-P",

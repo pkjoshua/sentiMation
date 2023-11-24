@@ -6,7 +6,7 @@ import logging
 import cv2
 
 # Initialize logging
-logging.basicConfig(filename="pokemon_log.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+logging.basicConfig(filename="pokemon_log.log", level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 
 def upscale_frame(frame_path, api_url, headers, json_payload_template, frame_number):
     with open(frame_path, "rb") as image_file:
@@ -16,7 +16,6 @@ def upscale_frame(frame_path, api_url, headers, json_payload_template, frame_num
     json_payload["init_images"] = [encoded_image]
 
     response = requests.post(api_url, headers=headers, json=json_payload)
-
     if response.status_code == 200:
         r = response.json()
         if 'images' in r and r['images']:
@@ -25,11 +24,11 @@ def upscale_frame(frame_path, api_url, headers, json_payload_template, frame_num
             return image_data, frame_number
     else:
         logging.error(f"API call failed for {frame_path}. Status Code: {response.status_code}, Response: {response.text}")
-        return None, frame_number
+        return None
 
 def create_video_from_frames(frame_folder, output_video_path, fps=30):
     frame_files = sorted([os.path.join(frame_folder, file) for file in os.listdir(frame_folder) if file.endswith('.png')],
-                         key=lambda x: int(x.split('_frame')[1].split('.png')[0]))  # Sorting based on zero-padded frame number
+                         key=lambda x: int(x.split('_frame_')[1].split('.png')[0]))
 
     if not frame_files:
         logging.error("No frames found in the folder.")
@@ -41,19 +40,22 @@ def create_video_from_frames(frame_folder, output_video_path, fps=30):
     size = (width, height)
 
     out = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, size)
-
     for frame_file in frame_files:
         frame = cv2.imread(frame_file)
         out.write(frame)
     out.release()
 
-# API configuration
+# API configuration and directories
 api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
 headers = {"Content-Type": "application/json"}
+overlayed_frames_dir = "overlayed_frames"
+upscale_dir = "upscale"
+os.makedirs(overlayed_frames_dir, exist_ok=True)
+os.makedirs(upscale_dir, exist_ok=True)
 
-# Define the JSON payload with upscaling script args
+
+# JSON payload for upscaling script
 json_payload_template = {
-    # Prompts
     "prompt": "Best quality, detailed, clear, smooth, sharp",
     "negative_prompt": "Compression artifacts, nudity, nsfw, Bad art, worst quality, low quality, plastic, fake, bad limbs, conjoined, featureless, bad features, incorrect objects, watermark, piercings, logo, watermark, blurry, grainy",
     "batch_size": 1,
@@ -62,8 +64,8 @@ json_payload_template = {
     "cfg_scale": 7,
     "denoising_strength": 0.3,
     "save_images": True,
-    "width": 1422,
-    "height": 1422,
+    "width": 948,
+    "height": 948,
     "script_name": "ultimate sd upscale",
     "script_args": [
         None,           # _ (not used)
@@ -81,9 +83,9 @@ json_payload_template = {
         8,              # seams_fix_mask_blur
         0,              # seams_fix_type
         0,              # target_size_type
-        1422,            # custom_width
-        1422,           # custom_height
-        3              # custom_scale
+        948,            # custom_width
+        948,           # custom_height
+        2              # custom_scale
     ]
 }
 
@@ -100,7 +102,7 @@ for i, frame_file in enumerate(sorted(os.listdir(overlayed_frames_dir))):
         upscaled_image, frame_number = upscale_frame(frame_path, api_url, headers, json_payload_template, i)
         if upscaled_image:
             formatted_frame_number = f"{frame_number:04d}"  # Zero-padded frame number
-            with open(os.path.join(upscale_dir, f"upscaled_frame{formatted_frame_number}.png"), 'wb') as file:
+            with open(os.path.join(upscale_dir, f"upscaled_frame_{formatted_frame_number}.png"), 'wb') as file:
                 file.write(upscaled_image)
 
 # Create an MP4 from the upscaled frames

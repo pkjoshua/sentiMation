@@ -9,7 +9,7 @@ def extract_frames(video_path, output_dir):
     count = 0
 
     while success:
-        frame_path = os.path.join(output_dir, f"frame{count}.png")
+        frame_path = os.path.join(output_dir, f"frame_{count:04d}.png")
         cv2.imwrite(frame_path, image)     
         success, image = vidcap.read()
         count += 1
@@ -34,13 +34,13 @@ def create_additional_frames(background_path, pokemon_path, mask_path, output_di
 
     for i in range(num_frames):
         combined = Image.composite(pokemon, bg_resized, mask)
-        frame_filename = f"frame{start_count + i}.png"
+        frame_filename = f"frame_{start_count + i:04d}.png"
         combined.save(os.path.join(output_dir, frame_filename))
 
 # Function to recompile frames into a video
 def recompile_video(frames_dir, output_video_path, fps=30):
     frame_files = sorted([f for f in os.listdir(frames_dir) if f.endswith('.png')],
-                         key=lambda x: int(x.replace('frame', '').replace('.png', '')))
+                         key=lambda x: int(x.split('_')[1].split('.png')[0]))
 
     first_frame = cv2.imread(os.path.join(frames_dir, frame_files[0]))
     height, width, layers = first_frame.shape
