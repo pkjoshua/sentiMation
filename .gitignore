@@ -20,3 +20,7 @@ chosen_prompt.txt
 *.txt
 
 *.mp3
+
+generators/pokemon/assets/scrape/
+
+generators/pokemon/assets/sound/scrape_music.ps1

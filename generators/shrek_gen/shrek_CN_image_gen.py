@@ -6,7 +6,7 @@ from datetime import datetime
 import base64
 
 # Set up logging
-logging.basicConfig(filename='shrek_prompts.log', level=logging.INFO)
+logging.basicConfig(filename="shrek_gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 # Function to generate Shrek-related prompt
 def generate_shrek_prompt():
@@ -77,7 +77,7 @@ base64_image = response_json['images'][0]  # Assumes the first element in the 'i
 image_bytes = base64.b64decode(base64_image)
 
 # Define the file path
-file_path = "D:\\sentiMation\\assets\\cn_shrek.png"  # Replace 'your_image.png' with the desired file name
+file_path = "D:\\sentiMation\\generators\\shrek_gen\\assets\\cn_shrek.png"  # Replace 'your_image.png' with the desired file name
 
 # Write the bytes to a file
 with open(file_path, "wb") as image_file:

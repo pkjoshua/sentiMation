@@ -43,6 +43,7 @@ def create_mask(image_path):
         img.save(current_mask_path)
 
         return img
+        
 def process_image(image_path, used_dir):
     # Resize original image
     with Image.open(image_path) as img:
