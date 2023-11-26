@@ -4,6 +4,7 @@ import random
 import logging
 import os
 import base64
+import textwrap
 from datetime import datetime
 from PIL import Image
 
@@ -83,7 +84,7 @@ api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
 
 json_payload = {
     "prompt": generate_skl_prompt(),
-    "negative_prompt": "bad quality, deformed, boring, pixelated, ",
+    "negative_prompt": "bad quality, deformed, boring, pixelated, grainy, low contrast, mutation, artifacts",
     "seed": -1,
     "sampler_name": "Euler a",
     "batch_size": 1,
