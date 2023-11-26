@@ -29,7 +29,7 @@ animate_diff_args = {
     "fps": 30,
     "loop_number": 0,
     "closed_loop": "A",
-    "batch_size": 12,
+    "batch_size": 7,
     "stride": 1,
     "overlap": -1,
     "interp": "NO",
@@ -53,8 +53,8 @@ json_payload = {
     "cfg_scale": 7,
     "denoising_strength": 0.7,
     "save_images": True,
-    "width": 490,
-    "height": 684,
+    "width": 512,
+    "height": 690,
     "alwayson_scripts": {
         "AnimateDiff": {"args": [animate_diff_args]}
     }
