@@ -4,6 +4,9 @@ import json
 import logging
 from datetime import datetime
 
+# Set up logging
+logging.basicConfig(filename="skl_gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+
 # Function to read the chosen prompt from a file
 def read_chosen_prompt():
     with open("chosen_prompt.txt", "r") as f:
@@ -13,7 +16,7 @@ def read_chosen_prompt():
 api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
 
 # Read reoriented image file from disk
-with open("D:\\sentiMation\\assets\\cn_shrek.png", "rb") as image_file:
+with open("D:\\sentiMation\\generators\\sketch2life\\assets\\cn_skl.png", "rb") as image_file:
     encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
 
 control_net_args = {
@@ -33,7 +36,7 @@ animate_diff_args = {
     "fps": 30,
     "loop_number": 0,
     "closed_loop": "R+P",
-    "batch_size": 8,
+    "batch_size": 10,
     "stride": 1,
     "overlap": -1,
     "interp": "NO",
@@ -48,8 +51,8 @@ json_payload = {
     "prompt": chosen_prompt,
     "negative_prompt": "bad quality, deformed, boring, mutation, amputation, missing appendage",
     "batch_size": 1,
-    "sampler_name": "Euler a",
-    "steps": 30,
+    "sampler_name": "DDIM",
+    "steps": 12,
     "cfg_scale": 10,
     "width": 512,
     "height": 512,
@@ -67,8 +70,36 @@ headers = {
 # Call the API
 response = requests.post(api_url, headers=headers, json=json_payload)
 
-# Debugging
-print("HTTP Status Code:", response.status_code)
+# Check for successful response
+if response.status_code == 200:
+    r = response.json()
+    # Assuming 'images' key contains a list of base64 encoded strings
+    if 'images' in r and r['images']:
+        base64_data = r['images'][0]
+        
+        # Decode base64 (assuming the data is direct base64 of MP4, no additional splitting needed)
+        mp4_data = base64.b64decode(base64_data)
 
-# Parse the JSON response
-response_json = response.json()
+        # Write the MP4 data to a file
+        with open('lowscale.mp4', 'wb') as file:
+            file.write(mp4_data)
+        print("MP4 file saved as 'low_scale.mp4'.")
+    else:
+        print("No image data found in the response.")
+else:
+    print(f"API call failed. Status Code: {response.status_code}, Response: {response.text}")
+
+
+# Debugging and Logging
+if response.status_code == 200:
+    logging.info(f"API call successful. Status Code: {response.status_code}")
+    response_json = response.json()
+
+    # Write JSON response to a file
+    with open("api_response.txt", "w") as file:
+        json.dump(response_json, file, indent=4)
+
+else:
+    logging.error(f"API call failed. Status Code: {response.status_code}, Response: {response.text}")
+    response_json = {}
+

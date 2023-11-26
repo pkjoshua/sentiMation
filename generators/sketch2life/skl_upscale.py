@@ -5,8 +5,8 @@ import base64
 import json
 import logging
 
-# Initialize logging
-logging.basicConfig(filename="shrek_gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+# Set up logging
+logging.basicConfig(filename="skl_gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 def upscale_frame(frame_path, api_url, headers, json_payload_template):
     with open(frame_path, "rb") as image_file:
@@ -65,12 +65,12 @@ json_payload_template = {
     "denoising_strength": 0.3,
     "save_images": True,
     "width": 1024,
-    "height": 1024,
+    "height": 1380,
     "script_name": "ultimate sd upscale",
     "script_args": [
         None,           # _ (not used)
         512,            # tile_width
-        512,            # tile_height
+        690,            # tile_height
         8,              # mask_blur
         32,             # padding
         64,             # seams_fix_width
@@ -84,7 +84,7 @@ json_payload_template = {
         0,              # seams_fix_type
         0,              # target_size_type
         1024,            # custom_width
-        1024,           # custom_height
+        1380,           # custom_height
         2               # custom_scale
     ]
 }

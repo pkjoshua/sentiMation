@@ -24,3 +24,5 @@ chosen_prompt.txt
 generators/pokemon/assets/scrape/
 
 generators/pokemon/assets/sound/scrape_music.ps1
+
+*.jpg

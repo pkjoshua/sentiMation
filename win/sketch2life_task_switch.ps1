@@ -1,6 +1,6 @@
 # Define the task name and task action
-$taskName = "Pokemon_Generator"
-$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\pokemon\call_pokemon.py' -WorkingDirectory 'D:\sentiMation\generators\pokemon'
+$taskName = "SKetch2Life_Generator_One"
+$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\sketch2life\call_skl.py' -WorkingDirectory 'D:\sentiMation\generators\sketch2life'
 
 # Check if the task already exists
 $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
@@ -8,7 +8,7 @@ $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
 # If task doesn't exist, create it
 if (-not $taskExists) {
     Write-Host "Task does not exist. Creating new task."
-    $taskTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Wednesday -At 1PM
+    $taskTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Saturday,Monday,Wednesday,Friday -At 6am
     $taskSettings = New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
     $principal = New-ScheduledTaskPrincipal -UserId "PALADIN1\josh" -LogonType ServiceAccount -RunLevel Highest
 

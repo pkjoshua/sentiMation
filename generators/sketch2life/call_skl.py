@@ -3,7 +3,7 @@ import logging
 import time
 
 # Set up logging
-logging.basicConfig(filename='skl_log.log', level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+logging.basicConfig(filename="skl_gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 # Function to run a script and log its output
 def run_script(script_name):
@@ -17,10 +17,9 @@ def run_script(script_name):
     time.sleep(10)  # 10-second pause between each script
 
 # Run scripts in sequence
-run_script('skl_prompt.py')
-run_script('pokemon_generator.py')
-run_script('pokemon_background_overlay.py')  # New step added
-run_script('pokemon_upscale.py')
-run_script('pokemon_mash.py')
+run_script('skl_CN_image_gen.py')
+run_script('skl_generator.py')
+run_script('skl_upscale.py')
+run_script('skl_mash.py')
 
 print("Script sequence complete.")
