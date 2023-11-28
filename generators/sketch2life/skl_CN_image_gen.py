@@ -15,57 +15,57 @@ def generate_skl_prompt():
     prompts = [
         textwrap.dedent("""\
         Icy landscape, frozen tundra, glacial beauty, mesmerizing, 4k, high detail
-        0: (frost:1.5), (glacial rivers:1.8)
-        50: (northern lights:1.5), (starry sky:1.8)
-        100: (snowfall:1.5), (pine forests:1.8)
-        150: (mountain peaks:1.5), (clear sky:1.8)
-        200: (ice caves:1.5), (crystal formations:1.8)
-        250: (blizzard:1.5), (wildlife:1.8)"""),
+        0: (frost:1.1), (glacial rivers:1.2)
+        50: (northern lights:1.1), (starry sky:1.2)
+        100: (snowfall:1.1), (pine forests:1.2)
+        150: (mountain peaks:1.1), (clear sky:1.2)
+        200: (ice caves:1.1), (crystal formations:1.2)
+        250: (blizzard:1.1), (wildlife:1.2)"""),
 
         textwrap.dedent("""\
         Lava flows, volcanic eruption, fiery environment, intense, 4k, high resolution
-        0: (eruption:1.5), (smoke:1.8)
-        50: (molten rock:1.5), (ash clouds:1.8)
-        100: (calm lava flows:1.5), (night sky:1.8)
-        150: (renewed eruption:1.5), (flying sparks:1.8)
-        200: (cooling lava:1.5), (formation of new land:1.8)
-        250: (steam:1.5), (flora growth:1.8)"""),
+        0: (eruption:1.1), (smoke:1.2)
+        50: (molten rock:1.1), (ash clouds:1.2)
+        100: (calm lava flows:1.1), (night sky:1.2)
+        150: (renewed eruption:1.1), (flying sparks:1.2)
+        200: (cooling lava:1.1), (formation of new land:1.2)
+        250: (steam:1.1), (flora growth:1.2)"""),
 
         textwrap.dedent("""\
         Cyberpunk cityscape, electric, neon lights, futuristic, vibrant, 4k, ultra high definition
-        0: (downtown neon:1.5), (hover cars:1.8)
-        50: (rooftop gardens:1.5), (city nightlife:1.8)
-        100: (underground markets:1.5), (holograms:1.8)
-        150: (corporate towers:1.5), (drones:1.8)
-        200: (rainy streets:1.5), (neon reflections:1.8)
-        250: (virtual reality zones:1.5), (cybernetic enhancements:1.8)"""),
+        0: (downtown neon:1.1), (hover cars:1.2)
+        50: (rooftop gardens:1.1), (city nightlife:1.2)
+        100: (underground markets:1.1), (holograms:1.2)
+        150: (corporate towers:1.1), (drones:1.2)
+        200: (rainy streets:1.1), (neon reflections:1.2)
+        250: (virtual reality zones:1.1), (cybernetic enhancements:1.2)"""),
 
         textwrap.dedent("""\
         Steampunk world, gears and steam, vintage technology, intricate, 4k, sharp details
-        0: (airships:1.5), (cobbled streets:1.8)
-        50: (inventors' workshops:1.5), (mechanical animals:1.8)
-        100: (steam trains:1.5), (iron bridges:1.8)
-        150: (clock towers:1.5), (foggy alleys:1.8)
-        200: (brass instruments:1.5), (leather attire:1.8)
-        250: (hidden taverns:1.5), (secret meetings:1.8)"""),
+        0: (airships:1.1), (cobbled streets:1.2)
+        50: (inventors' workshops:1.1), (mechanical animals:1.2)
+        100: (steam trains:1.1), (iron bridges:1.2)
+        150: (clock towers:1.1), (foggy alleys:1.2)
+        200: (brass instruments:1.1), (leather attire:1.2)
+        250: (hidden taverns:1.1), (secret meetings:1.2)"""),
 
         textwrap.dedent("""\
         Desert dunes, arid climate, sandstorm, vast, mesmerizing, 4k, high clarity
-        0: (daylight:1.5), (travelers:1.8), (camels:2.0)
-        50: (oasis:1.5), (palm trees:1.8), (refreshing water:2.0)
-        100: (sandstorm:1.5), (shelter:1.8), (survival:2.0)
-        150: (evening calm:1.5), (campfire:1.8), (star gazing:2.0)
-        200: (full moon:1.5), (cool night:1.8), (nocturnal creatures:2.0)
-        250: (dawn:1.5), (golden sunrise:1.8), (new journey:2.0)"""),
+        0: (daylight:1.1), (travelers:1.2), (camels:1.1)
+        50: (oasis:1.1), (palm trees:1.2), (refreshing water:1.1)
+        100: (sandstorm:1.1), (shelter:1.2), (survival:1.1)
+        150: (evening calm:1.1), (campfire:1.2), (star gazing:1.1)
+        200: (full moon:1.1), (cool night:1.2), (nocturnal creatures:1.1)
+        250: (dawn:1.1), (golden sunrise:1.2), (new journey:1.1)"""),
 
         textwrap.dedent("""\
         Beach paradise, tropical, sunny, ocean view, serene, beautiful, 4k, cinematic
-        0: (sunny beach:1.5), (palm trees:1.8), (clear water:2.0)
-        50: (coral reefs:1.5), (colorful fish:1.8), (underwater world:2.0)
-        100: (sunset:1.5), (silhouettes:1.8), (relaxing vibes:2.0)
-        150: (beach party:1.5), (music and dance:1.8), (joyful moments:2.0)
-        200: (starry night:1.5), (bonfire:1.8), (stories shared:2.0)
-        250: (sunrise:1.5), (morning yoga:1.8), (rejuvenation:2.0)""")
+        0: (sunny beach:1.1), (palm trees:1.2), (clear water:1.1)
+        50: (coral reefs:1.1), (colorful fish:1.2), (underwater world:1.1)
+        100: (sunset:1.1), (silhouettes:1.2), (relaxing vibes:1.1)
+        150: (beach party:1.1), (music and dance:1.2), (joyful moments:1.1)
+        200: (starry night:1.1), (bonfire:1.2), (stories shared:1.1)
+        250: (sunrise:1.1), (morning yoga:1.2), (rejuvenation:1.1)""")
     ]
     chosen_prompt = random.choice(prompts)
     logging.info(f"Full chosen prompt: {chosen_prompt}")
@@ -123,8 +123,8 @@ if latest_image_encoded is None:
 control_net_args = {
     "input_image": latest_image_encoded,
     "resize_mode": "Just Resize",
-    "module": "canny",
-    "model": "control_v11p_sd15_canny_fp16 [b18e0966]",
+    "module": "lineart_standard",
+    "model": "control_v11p_sd15_lineart_fp16 [5c23b17d]",
     "weight": 1,
     "pixel_perfect": True
 }

@@ -30,16 +30,23 @@ def run_script(script_name):
         logging.error("Error: %s", result.stderr)
     time.sleep(10)  # 10-second pause between each script
 
+# Function to run all scripts and track total execution time
+def run_all_scripts():
+    start_time = time.time()
+    run_script('pokemon_prompt.py')  # Create prompt
+    run_script('pokemon_generator.py')  # Generate Animation and mask
+    run_script('pokemon_upscale.py')  # Upscale frames and create mp4
+    run_script('pokemon_background_overlay.py')  # Overlay background
+    run_script('pokemon_mash.py')  # Append audio
+    total_time = time.time() - start_time
+    logging.info(f"Total time for all scripts: {total_time:.2f} seconds")
+
 # Clear contents of specific directories before running scripts
-directories_to_clear = ['frames', 'overlayed_frames', 'upscale']
+directories_to_clear = ['lowscale', 'upscale', 'upscale_process','upscale_overlay']
 for directory in directories_to_clear:
     clear_directory(directory)
 
-# Run scripts in sequence
-run_script('pokemon_prompt.py') # Create prompt
-run_script('pokemon_generator.py') # Generate Animation and mask
-run_script('pokemon_background_overlay.py')  # Overlay background
-run_script('pokemon_upscale.py') # Upscale frames and create mp4
-run_script('pokemon_mash.py') # Append audio 
+# Run the sequence of scripts
+run_all_scripts()
 
 print("Script sequence complete.")

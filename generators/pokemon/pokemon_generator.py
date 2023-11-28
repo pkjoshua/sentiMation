@@ -169,7 +169,7 @@ if response.status_code == 200:
         mp4_data = base64.b64decode(base64_data)
         with open('lowscale.mp4', 'wb') as file:
             file.write(mp4_data)
-        print("MP4 file saved as 'low_scale.mp4'.")
+        print("MP4 file saved as 'lowscale.mp4'.")
     else:
         print("No image data found in the response.")
 else:

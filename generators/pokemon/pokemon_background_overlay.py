@@ -1,81 +1,103 @@
-import cv2
 import os
-from PIL import Image
+import cv2
+import logging
+from PIL import Image, ImageOps
+
+# Set up logging
+logging.basicConfig(filename="pokemon_log.log", level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+
+# Constants
+FPS = 30
+NUM_EXTRA_FRAMES = 115
 
 # Function to extract frames from a video
-def extract_frames(video_path, output_dir):
+def extract_frames(video_path, output_dir, file_prefix=""):
     vidcap = cv2.VideoCapture(video_path)
     success, image = vidcap.read()
     count = 0
 
     while success:
-        frame_path = os.path.join(output_dir, f"frame_{count:04d}.png")
+        frame_path = os.path.join(output_dir, f"{file_prefix}frame_{count:04d}.png")
         cv2.imwrite(frame_path, image)     
         success, image = vidcap.read()
         count += 1
+    return count
 
-# Function to overlay frames on a background image
-def overlay_frames_on_background(frames_dir, background_path, mask_path, output_dir):
-    background = Image.open(background_path).convert("RGBA")
-    mask = Image.open(mask_path).convert("L")
+# Function to overlay frames with a looping background
+def overlay_frames_with_background(frames_dir, background_video_path, mask_path, output_dir):
+    background_vidcap = cv2.VideoCapture(background_video_path)
+    mask = Image.open(mask_path).convert("L")  # Load the mask
 
-    for frame_filename in os.listdir(frames_dir):
-        frame_path = os.path.join(frames_dir, frame_filename)
-        with Image.open(frame_path).convert("RGBA") as frame:
-            bg_resized = background.resize(frame.size)
-            combined = Image.composite(frame, bg_resized, mask)
-            combined.save(os.path.join(output_dir, frame_filename))
+    bg_success, bg_image = background_vidcap.read()
+    bg_count = 0
 
-def create_additional_frames(background_path, pokemon_path, mask_path, output_dir, start_count, num_frames=115):
-    background = Image.open(background_path).convert("RGBA")
-    pokemon = Image.open(pokemon_path).convert("RGBA")
-    mask = Image.open(mask_path).convert("L")
-    bg_resized = background.resize(pokemon.size)
-
-    for i in range(num_frames):
-        combined = Image.composite(pokemon, bg_resized, mask)
-        frame_filename = f"frame_{start_count + i:04d}.png"
-        combined.save(os.path.join(output_dir, frame_filename))
-
-# Function to recompile frames into a video
-def recompile_video(frames_dir, output_video_path, fps=30):
-    frame_files = sorted([f for f in os.listdir(frames_dir) if f.endswith('.png')],
-                         key=lambda x: int(x.split('_')[1].split('.png')[0]))
-
-    first_frame = cv2.imread(os.path.join(frames_dir, frame_files[0]))
-    height, width, layers = first_frame.shape
-    video = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
-
+    frame_files = sorted(os.listdir(frames_dir), key=lambda x: int(x.split('_')[2].split('.png')[0]))
     for frame_file in frame_files:
-        frame = cv2.imread(os.path.join(frames_dir, frame_file))
-        video.write(frame)
+        frame_path = os.path.join(frames_dir, frame_file)
+        frame = Image.open(frame_path).convert("RGBA")
+        
+        if not bg_success:
+            background_vidcap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+            bg_success, bg_image = background_vidcap.read()
+            bg_count = 0
 
-    video.release()
+        # Convert background frame to PIL Image and resize to match frame size
+        bg_image_pil = Image.fromarray(cv2.cvtColor(bg_image, cv2.COLOR_BGR2RGB)).convert("RGBA")
+        bg_resized = bg_image_pil.resize(frame.size)
+
+        # Overlay frame on resized background using the mask
+        combined = Image.composite(frame, bg_resized, mask)
+        combined_path = os.path.join(output_dir, f"overlay_{frame_file}")
+        combined.save(combined_path, format="PNG")
+        
+        bg_success, bg_image = background_vidcap.read()
+        bg_count += 1
+
+# Function to compile all frames into a video
+def create_video_from_frames(frames_dir, output_video_path, fps):
+    
+    frame_files = sorted(
+        [os.path.join(frames_dir, file) for file in os.listdir(frames_dir) if file.endswith('.png')],
+        key=lambda x: int(x.split('_')[4].split('.png')[0])
+    )
+
+    if not frame_files:
+        logging.error("No frames found in the folder.")
+        return
+
+    frame = cv2.imread(frame_files[0])
+    height, width, layers = frame.shape
+    size = (width, height)
+
+    out = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, size)
+    for frame_file in frame_files:
+        frame = cv2.imread(frame_file)
+        out.write(frame)
+    out.release()
 
 # Paths and directories
-video_path = "lowscale.mp4"
-background_path = "background.png"
-mask_path = "current_mask.png"
-pokemon_path = "current_pokemon.png"
-frames_dir = "frames"
-overlayed_frames_dir = "overlayed_frames"
-output_video_path = "lowscale_overlay.mp4"
+upscale_video_path = "upscale.mp4"
+background_video_path = "background.mp4"
+pokemon_image_path = "current_pokemon_upscale.png"
+mask_path = "current_mask_upscale.png"  # Path to the mask image
+upscale_dir = "upscale_process"
+output_dir = "upscale_overlay"
+os.makedirs(upscale_dir, exist_ok=True)
+os.makedirs(output_dir, exist_ok=True)
 
-# Ensure directories exist
-os.makedirs(frames_dir, exist_ok=True)
-os.makedirs(overlayed_frames_dir, exist_ok=True)
+# Extract and process frames
+extract_frames(upscale_video_path, upscale_dir, "upscale_")
+num_frames = extract_frames(upscale_video_path, upscale_dir, "upscale_") # Number of frames in upscale.mp4
 
-# Extract and overlay frames
-extract_frames(video_path, frames_dir)
-overlay_frames_on_background(frames_dir, background_path, mask_path, overlayed_frames_dir)
+# Append copies of current_pokemon_upscale.png
+pokemon_img = cv2.imread(pokemon_image_path)
+for i in range(NUM_EXTRA_FRAMES):
+    cv2.imwrite(os.path.join(upscale_dir, f"upscale_frame_{num_frames + i:04d}.png"), pokemon_img)
 
-# Determine the starting frame number for additional frames
-start_frame_count = len(os.listdir(overlayed_frames_dir))
+# Overlay frames with background
+overlay_frames_with_background(upscale_dir, background_video_path, mask_path, output_dir)
 
-# Create and append additional frames
-create_additional_frames(background_path, pokemon_path, mask_path, overlayed_frames_dir, start_frame_count)
+# Compile all overlay frames into a video
+create_video_from_frames(output_dir, "upscale_overlay.mp4", FPS)
 
-# Recompile the video
-recompile_video(overlayed_frames_dir, output_video_path)
-
-print("Video processing complete. Final video saved as:", output_video_path)
+logging.info("Background overlay and video compilation complete.")

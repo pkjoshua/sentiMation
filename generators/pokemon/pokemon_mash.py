@@ -3,7 +3,7 @@ import moviepy.editor as mp
 from datetime import datetime
 
 # Set paths and constants
-VIDEO_PATH = "upscale.mp4"
+VIDEO_PATH = "upscale_overlay.mp4"
 POKEMON_SELECTED_FILE = "pokemon_selected.txt"
 SOUNDS_FOLDER = "assets/sound"
 OUTPUT_FOLDER = "output"
