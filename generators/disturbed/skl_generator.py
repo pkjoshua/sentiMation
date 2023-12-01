@@ -27,7 +27,7 @@ control_net_args = {
     "model": "control_v11f1e_sd15_tile_fp16 [3b860298]",
     "weight": 1,
     "pixel_perfect": True,
-    "guessmode": False
+    "guessmode": false
 }
 
 # Define the payload for animate_diff_args
@@ -39,7 +39,7 @@ animate_diff_args = {
     "fps": 30,
     "loop_number": 0,
     "closed_loop": "A",
-    "batch_size": 7,
+    "batch_size": 8,
     "stride": 1,
     "overlap": -1,
     "interp": "NO",
@@ -54,7 +54,7 @@ json_payload = {
     "prompt": chosen_prompt,
     "negative_prompt": "bad quality, deformed, boring, mutation, amputation, missing appendage",
     "batch_size": 1,
-    "sampler_name": "Euler a",
+    "sampler_name": "Euler A",
     "steps": 30,
     "cfg_scale": 7,
     "width": 512,
