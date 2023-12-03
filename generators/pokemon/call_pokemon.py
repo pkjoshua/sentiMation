@@ -4,8 +4,15 @@ import time
 import os
 import shutil
 
-# Set up logging
+# Set up main logging
 logging.basicConfig(filename='pokemon_log.log', level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+
+# Set up generation time logging
+gentime_logger = logging.getLogger('gentime_logger')
+gentime_handler = logging.FileHandler('gentime.log')
+gentime_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
+gentime_logger.addHandler(gentime_handler)
+gentime_logger.setLevel(logging.INFO)
 
 # Function to clear the contents of a directory
 def clear_directory(directory):
@@ -39,7 +46,7 @@ def run_all_scripts():
     run_script('pokemon_background_overlay.py')  # Overlay background
     run_script('pokemon_mash.py')  # Append audio
     total_time = time.time() - start_time
-    logging.info(f"Total time for all scripts: {total_time:.2f} seconds")
+    gentime_logger.info(f"Total time for all scripts: {total_time:.2f} seconds")
 
 # Clear contents of specific directories before running scripts
 directories_to_clear = ['lowscale', 'upscale', 'upscale_process','upscale_overlay']
