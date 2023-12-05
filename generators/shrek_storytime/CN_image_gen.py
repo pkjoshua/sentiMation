@@ -1,84 +1,59 @@
 import requests
 import json
-import random
 import logging
-from datetime import datetime
 import base64
+import os
 
 # Set up logging
-logging.basicConfig(filename="shrek_gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
-# Function to generate Shrek-related prompt
-def generate_shrek_prompt():
-    prompts = [
-        "Shrek fighting a dragon on a volcano, radiant greatsword, epic, dark fantasy, fire, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek dueling a medieval knight, armor, sword, dark fantasy, dark souls, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek driving a futuristic motorcycle through the city, cyberpunk, cyber, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek evading an apocalyptic robot, detailed, 4k, high quality, clear, smooth, cinematic, intense, <lora:shrek:0.2>",
-        "Shrek as a king of an alien planet, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek riding a futuristic motorcycle, tron, cyber, blue, virtual world, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek fighting against an alien invasion, above earth, space, starts, cyber, high contrast, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek defeating a golden knight, in a castle, swords, armor, dark fantasy, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek peeling an onion while cooking, in a swamp hut, stove, utencils, kitchen, pans, pot, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>"
-        "Shrek eating a banana, jungle, monkeys, trees, vines, luscious jungle, green, vegetation, flowers, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek riding a dinosaur through the mountains, rocky terrain, cliffs, grass, eagles, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek typing at a computer, hacking, blackhat, computer screen, nerdy, soda, moms house, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek hunting a wild boar, fantasy, medieval, spear, tusks, grassland, river, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek golfing at a country club, driver, grass, golf cart, flag, country club in the background, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek as a priest at a church, reading the gospel, (wine:1.2), (bread:1.2), christian, cross, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.2>",
-        "Shrek as a yoga instructor, yoga retreat, wooden floor, scenic view, stretching, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.4>",
-        "Shrek boiling a large lobster inside of a pot, steam, fire, claws, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.3>",
-        "Shrek scrolling on his phone, in a futurisitc city, digital billboards, holograms, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.3>",
-        "Shrek writing a best selling novel, at a desk, in a cabin, fireplace, warmth, paper, quill, detailed, 4k, high quality, clear, smooth, cinematic, <lora:shrek:0.3>"
-    ]
-    chosen_prompt = random.choice(prompts)
-    logging.info(f"{datetime.now()} - Chosen prompt: {chosen_prompt}")
-
-    # Write the chosen prompt to a file
-    with open("chosen_prompt.txt", "w") as f:
-        f.write(chosen_prompt)
-
-    return chosen_prompt
+# Read prompts from selected_story.txt
+def read_prompts_from_file(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+        prompts = [line.split('Prompt: ')[-1].strip() for line in lines if line.startswith('Prompt: ')]
+    return prompts
 
 # Define the API URL
 api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
 
-# Define the JSON payload
-json_payload = {
-    "prompt": generate_shrek_prompt(),
-    "negative_prompt": "bad quality, deformed, boring",
-    "seed": -1,
-    "sampler_name": "DDIM",
-    "batch_size": 1,
-    "steps": 10,
-    "cfg_scale": 7,
-    "width": 512,
-    "height": 512
-}
+# Process and save the image
+def process_and_save_image(base64_image, file_index, output_dir):
+    image_bytes = base64.b64decode(base64_image)
+    file_path = os.path.join(output_dir, f"controlnet_image_{file_index:04d}.png")
+    with open(file_path, "wb") as image_file:
+        image_file.write(image_bytes)
+    logging.info(f"Saved image at {file_path}")
 
-# Convert the payload to JSON format
-json_payload_str = json.dumps(json_payload)
+def make_api_call_and_save(prompt, index, output_dir):
+    json_payload = {
+        "prompt": prompt,
+        "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
+        "seed": -1,
+        "sampler_name": "DDIM",
+        "batch_size": 1,
+        "steps": 30,
+        "cfg_scale": 7,
+        "width": 360,
+        "height": 640
+    }
 
-# Define the headers
-headers = {
-    "Content-Type": "application/json"
-}
+    response = requests.post(api_url, headers={"Content-Type": "application/json"}, json=json_payload)
+    if response.status_code == 200:
+        response_json = response.json()
+        base64_image = response_json['images'][0]
+        process_and_save_image(base64_image, index, output_dir)
+    else:
+        logging.error(f"API call for prompt '{prompt}' failed with status code {response.status_code}")
 
-# Make the API request
-response = requests.post(api_url, headers=headers, data=json_payload_str)
+# Read prompts
+selected_story_file = "selected_story.txt"
+prompts = read_prompts_from_file(selected_story_file)
 
-# Parse the JSON response
-response_json = response.json()
+# Output directory
+output_dir = "assets\\controlnet"
+os.makedirs(output_dir, exist_ok=True)
 
-# Extract the base64 encoded image data from the 'images' field
-base64_image = response_json['images'][0]  # Assumes the first element in the 'images' array contains the base64 image data
-
-# Decode the base64 image to bytes
-image_bytes = base64.b64decode(base64_image)
-
-# Define the file path
-file_path = "D:\\sentiMation\\generators\\shrek_gen\\assets\\cn_shrek.png"  # Replace 'your_image.png' with the desired file name
-
-# Write the bytes to a file
-with open(file_path, "wb") as image_file:
-    image_file.write(image_bytes)
+# Make API calls for each prompt
+for index, prompt in enumerate(prompts):
+    make_api_call_and_save(prompt, index, output_dir)

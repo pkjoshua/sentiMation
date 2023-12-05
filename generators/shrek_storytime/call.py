@@ -1,6 +1,7 @@
 import subprocess
 import logging
 import time
+import os
 
 # Set up logging
 logging.basicConfig(filename='gen.log', level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
@@ -11,6 +12,18 @@ gentime_logger.setLevel(logging.INFO)
 gentime_handler = logging.FileHandler('gentime.log')
 gentime_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
 gentime_logger.addHandler(gentime_handler)
+
+# Function to clear the contents of a directory
+def clear_directory(directory):
+    for item in os.listdir(directory):
+        file_path = os.path.join(directory, item)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            logging.error(f'Failed to delete {file_path}. Reason: {e}')
 
 # Function to run a script and log its output
 def run_script(script_name):
@@ -26,6 +39,7 @@ def run_script(script_name):
 # Run scripts in sequence
 def run_scripts_sequence():
     start_time = time.time()  # Start timing
+    run_script('story_select.py')
     run_script('CN_image_gen.py')
     run_script('generator.py')
     run_script('upscale.py')
@@ -34,7 +48,12 @@ def run_scripts_sequence():
     total_time = end_time - start_time
     gentime_logger.info(f"Total time for sequence: {total_time:.2f} seconds")
 
-# Run the sequence four times
-for i in range(4):
-    logging.info(f"Running iteration {i + 1}")
-    run_scripts_sequence()
+# Clear contents of specific directories before running scripts
+directories_to_clear = ['assets\\lowscale', 'assets\\upscale', 'assets\\controlnet','assets\\generations','assets\\upscale_generations']
+for directory in directories_to_clear:
+    clear_directory(directory)
+
+run_scripts_sequence()
+
+print("Script sequence complete.")
+

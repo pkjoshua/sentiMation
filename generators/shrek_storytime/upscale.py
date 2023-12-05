@@ -6,7 +6,7 @@ import json
 import logging
 
 # Initialize logging
-logging.basicConfig(filename="shrek_gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 def upscale_frame(frame_path, api_url, headers, json_payload_template):
     with open(frame_path, "rb") as image_file:
@@ -16,7 +16,7 @@ def upscale_frame(frame_path, api_url, headers, json_payload_template):
     json_payload["init_images"] = [encoded_image]
 
     response = requests.post(api_url, headers=headers, json=json_payload)
-
+    
     if response.status_code == 200:
         r = response.json()
         if 'images' in r and r['images']:
@@ -33,21 +33,42 @@ def extract_frames(video_path, output_dir):
     count = 0
 
     while success:
-        frame_path = os.path.join(output_dir, f"frame{count}.png")
+        frame_path = os.path.join(output_dir, f"frame{count:04d}.png")
         cv2.imwrite(frame_path, image)     
         success, image = vidcap.read()
         count += 1
     
-    return count  # Return the total number of frames extracted
+    fps = vidcap.get(cv2.CAP_PROP_FPS)
+    return count, fps  # Return the total number of frames extracted and the fps
+
+def create_video_from_frames(frame_folder, output_video_path, fps):
+    frame_files = sorted([os.path.join(frame_folder, file) for file in os.listdir(frame_folder) if file.endswith('.png')])
+    if not frame_files:
+        logging.error("No frames found in the folder.")
+        return
+
+    frame = cv2.imread(frame_files[0])
+    height, width, layers = frame.shape
+    size = (width, height)
+
+    out = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, size)
+    for frame_file in frame_files:
+        frame = cv2.imread(frame_file)
+        out.write(frame)
+    out.release()
 
 def process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_payload_template):
-    frame_count = extract_frames(video_path, lowscale_dir)
+    frame_count, fps = extract_frames(video_path, lowscale_dir)
     for i in range(frame_count):
-        frame_path = os.path.join(lowscale_dir, f"frame{i}.png")
+        frame_path = os.path.join(lowscale_dir, f"frame{i:04d}.png")
         upscaled_image = upscale_frame(frame_path, api_url, headers, json_payload_template)
         if upscaled_image:
-            with open(os.path.join(upscale_dir, f"upscaled_frame{i}.png"), 'wb') as file:
+            with open(os.path.join(upscale_dir, f"upscaled_frame{i:04d}.png"), 'wb') as file:
                 file.write(upscaled_image)
+
+    # Create the upscaled video
+    output_video_path = os.path.join("assets\\upscale_generations", os.path.basename(video_path))
+    create_video_from_frames(upscale_dir, output_video_path, fps)
 
 # API configuration
 api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
@@ -64,13 +85,13 @@ json_payload_template = {
     "cfg_scale": 7,
     "denoising_strength": 0.3,
     "save_images": True,
-    "width": 1024,
-    "height": 1024,
+    "width": 720,
+    "height": 1280,
     "script_name": "ultimate sd upscale",
     "script_args": [
         None,           # _ (not used)
-        512,            # tile_width
-        512,            # tile_height
+        360,            # tile_width
+        640,            # tile_height
         8,              # mask_blur
         32,             # padding
         64,             # seams_fix_width
@@ -83,17 +104,29 @@ json_payload_template = {
         8,              # seams_fix_mask_blur
         0,              # seams_fix_type
         0,              # target_size_type
-        1024,            # custom_width
-        1024,           # custom_height
+        720,            # custom_width
+        1280,           # custom_height
         2               # custom_scale
     ]
 }
 
 # Directories
-lowscale_dir = "lowscale"
-upscale_dir = "upscale"
+generations_dir = "assets\\generations"
+lowscale_dir = "assets\\lowscale"
+upscale_dir = "assets\\upscale"
+upscale_generations_dir = "assets\\upscale_generations"
+
 os.makedirs(lowscale_dir, exist_ok=True)
 os.makedirs(upscale_dir, exist_ok=True)
+os.makedirs(upscale_generations_dir, exist_ok=True)
 
-# Process the video
-process_video("lowscale.mp4", lowscale_dir, upscale_dir, api_url, headers, json_payload_template)
+# Process each generation video
+for video_file in sorted(os.listdir(generations_dir)):
+    video_path = os.path.join(generations_dir, video_file)
+    if video_path.endswith('.mp4'):
+        logging.info(f"Processing video: {video_path}")
+        process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_payload_template)
+        # Clear lowscale and upscale directories for next video
+        for folder in [lowscale_dir, upscale_dir]:
+            for file in os.listdir(folder):
+                os.unlink(os.path.join(folder, file))
