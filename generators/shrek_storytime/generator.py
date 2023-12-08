@@ -35,6 +35,7 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
     
     control_net_args = {
         "input_image": encoded_image,
+        "resize_mode" : "Crop and Resize",
         "module": "tile_resample",
         "model": "control_v11f1e_sd15_tile_fp16 [3b860298]",
         "weight": 1,
@@ -46,20 +47,20 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
         "model": "animatediffMotion_v15V2.ckpt",
         "format": ['MP4'],
         "enable": True,
-        "video_length": 120,
+        "video_length": 60,
         "fps": 30,
         "loop_number": 0,
-        "closed_loop": "R+P",
-        "batch_size": 8,
+        "closed_loop": "A",
+        "batch_size": 16,
         "stride": 1,
         "overlap": -1,
         "interp": "NO",
         "interp_x": 10,
-        "latent_power": 0.1,      # Latent power
-        "latent_scale": 128,     # Latent scale
+        "latent_power": 1,      # Latent power
+        "latent_scale": 64,     # Latent scale
         "last_frame": encoded_image,     # Optional last frame
-        "latent_power_last": 0.1, # Optional latent power for last frame
-        "latent_scale_last": 128
+        "latent_power_last": 1, # Optional latent power for last frame
+        "latent_scale_last": 64
     }
 
     # Define the JSON payload
@@ -69,7 +70,7 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
         "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
         "batch_size": 1,
         "sampler_name": "DDIM",
-        "steps": 30,
+        "steps": 10,
         "cfg_scale": 10,
         "width": 360,
         "height": 640,

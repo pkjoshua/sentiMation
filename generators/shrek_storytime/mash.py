@@ -14,8 +14,14 @@ def concatenate_videos(video_folder, output_folder):
         logging.warning("No video files found in the folder.")
         return
 
-    clips = [VideoFileClip(v) for v in video_files]
-    final_clip = concatenate_videoclips(clips, method="compose")
+    all_clips = []
+    for video_file in video_files:
+        clip = VideoFileClip(video_file)
+        # Create three copies of each clip and add them to the list
+        all_clips.extend([clip, clip.copy(), clip.copy()])
+
+    # Concatenate all clips including the copies
+    final_clip = concatenate_videoclips(all_clips, method="compose")
 
     # Generate video file name with current date and time
     current_datetime = datetime.datetime.now()
@@ -26,8 +32,8 @@ def concatenate_videos(video_folder, output_folder):
 
     logging.info(f"Final video created: {output_video_path}")
 
-    # Optional: Close all clips to free memory
-    for clip in clips:
+    # Close all clips to free memory
+    for clip in all_clips:
         clip.close()
 
 # Specify the directories

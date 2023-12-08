@@ -77,11 +77,11 @@ headers = {"Content-Type": "application/json"}
 # Define the JSON payload with upscaling script args
 json_payload_template = {
     # Prompts
-    "prompt": "Best quality, detailed, clear, smooth, sharp",
+    "prompt": "Best quality, detailed, clear, smooth, sharp, 4k, high resolution",
     "negative_prompt": "Compression artifacts, nudity, nsfw, Bad art, worst quality, low quality, plastic, fake, bad limbs, conjoined, featureless, bad features, incorrect objects, watermark, piercings, logo, watermark, blurry, grainy",
     "batch_size": 1,
     "sampler_name": "DPM++ 2M SDE Karras",
-    "steps": 50,
+    "steps": 30,
     "cfg_scale": 7,
     "denoising_strength": 0.3,
     "save_images": True,
