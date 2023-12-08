@@ -1,6 +1,6 @@
 # Define the task name and task action
-$taskName = "Storytime_Generator"
-$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\storytime\call.py' -WorkingDirectory 'D:\sentiMation\generators\storytime'
+$taskName = "Shrek_Storytime_Generator"
+$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\shrek_storytime\call.py' -WorkingDirectory 'D:\sentiMation\generators\shrek_storytime'
 
 # Check if the task already exists
 $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
