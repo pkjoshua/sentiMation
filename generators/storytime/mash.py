@@ -4,33 +4,51 @@ import logging
 import textwrap
 from moviepy.editor import VideoFileClip, concatenate_videoclips, TextClip, CompositeVideoClip
 
+# Constants for easy adjustments
+TXT_FONTSIZE = 36
+TXT_COLOR = 'white'
+TXT_OUTLINE_COLOR = 'black'
+TXT_WRAP_WIDTH = 40
+MARGIN = 80
+POSITION_FROM_BOTTOM = 50
+OUTLINE_OFFSET = 2
+FADEIN_DURATION = 1.0  # Duration of the fade-in effect in seconds
+
 # Set up logging
 logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 def overlay_text_on_clip(clip, text):
-    """Overlay text on a given video clip."""
-    # Define text properties
-    txt_fontsize = 36  # Adjust fontsize as needed
-    txt_color = 'white'
-    txt_wrap_width = 40  # Adjust wrap width as needed
-
+    """Overlay text on a given video clip with fade-in effect."""
     # Create a wrapped text
-    wrapped_text = "\n".join(textwrap.wrap(text, width=txt_wrap_width))
+    wrapped_text = "\n".join(textwrap.wrap(text, width=TXT_WRAP_WIDTH))
 
     # Define text clip with wrapping
-    txt_clip = TextClip(wrapped_text, fontsize=txt_fontsize, color=txt_color, align='West', method='label', size=(clip.size[0]-40, None))
+    txt_clip = TextClip(wrapped_text, fontsize=TXT_FONTSIZE, color=TXT_COLOR, align='West', method='label', size=(clip.size[0]-MARGIN, None))
+
+    # Define an outline text clip (black color) slightly larger size
+    txt_clip_outline = TextClip(wrapped_text, fontsize=TXT_FONTSIZE, color=TXT_OUTLINE_COLOR, align='West', method='label', size=(clip.size[0]-MARGIN, None))
 
     # Position of the text: slightly above the bottom
     x_position = 'center'
-    y_position = clip.size[1] - txt_clip.size[1] - 100  # 20 pixels above the bottom
+    y_position = clip.size[1] - txt_clip.size[1] - POSITION_FROM_BOTTOM
     txt_position = (x_position, y_position)
 
+    # Positioning the outline text slightly offset from the main text
+    txt_outline_position = (x_position, y_position - OUTLINE_OFFSET)
+
     txt_clip = txt_clip.set_position(txt_position).set_duration(clip.duration)
+    txt_clip_outline = txt_clip_outline.set_position(txt_outline_position).set_duration(clip.duration)
 
-    # Overlay text clip on video clip
-    return CompositeVideoClip([clip, txt_clip])
+    # Apply fade-in effect to the text clips
+    txt_clip = txt_clip.crossfadein(FADEIN_DURATION)
+    txt_clip_outline = txt_clip_outline.crossfadein(FADEIN_DURATION)
 
-def concatenate_videos(video_folder, output_folder, prompts):
+    # Overlay both text clips on video clip
+    final_clip = CompositeVideoClip([clip, txt_clip_outline, txt_clip])
+
+    return final_clip.set_duration(clip.duration)
+
+def concatenate_videos(video_folder, clips_folder, output_folder, prompts):
     video_files = [os.path.join(video_folder, f) for f in os.listdir(video_folder) if f.endswith(".mp4")]
     video_files.sort()  # Sort to ensure they are in order
 
@@ -38,30 +56,37 @@ def concatenate_videos(video_folder, output_folder, prompts):
         logging.warning("No video files found in the folder.")
         return
 
-    all_clips = []
+    final_clips = []
+
     for idx, video_file in enumerate(video_files):
         clip = VideoFileClip(video_file)
+        # Creating a single clip with 3 copies
+        combined_clip = concatenate_videoclips([clip, clip.copy(), clip.copy()], method="compose")
+        combined_clip_path = os.path.join(clips_folder, f"combined_clip_{idx:04d}.mp4")
         if idx < len(prompts):
-            clip_with_text = overlay_text_on_clip(clip, prompts[idx])
-            all_clips.extend([clip_with_text, clip_with_text.copy(), clip_with_text.copy()])
+            combined_clip_with_text = overlay_text_on_clip(combined_clip, prompts[idx])
+            combined_clip_with_text.write_videofile(combined_clip_path, codec="libx264")
         else:
             logging.warning(f"No prompt for video {idx}, adding without text.")
-            all_clips.extend([clip, clip.copy(), clip.copy()])
+            combined_clip.write_videofile(combined_clip_path, codec="libx264")
+        final_clips.append(VideoFileClip(combined_clip_path))
 
-    # Concatenate all clips including the copies
-    final_clip = concatenate_videoclips(all_clips, method="compose")
+        # Close clips to free memory
+        clip.close()
+        combined_clip.close()
+        if 'combined_clip_with_text' in locals():
+            combined_clip_with_text.close()
 
-    # Generate video file name with current date and time
+    # Concatenate all final clips into one video
+    final_video = concatenate_videoclips(final_clips, method="compose")
     current_datetime = datetime.datetime.now()
-    output_video_name = current_datetime.strftime("final_output_%m%d%Y%H%M") + ".mp4"
-    output_video_path = os.path.join(output_folder, output_video_name)
+    final_video_name = current_datetime.strftime("final_output_%d%m%Y%H%M") + ".mp4"
+    final_video_path = os.path.join(output_folder, final_video_name)
+    final_video.write_videofile(final_video_path, codec="libx264")
+    logging.info(f"Final video created: {final_video_path}")
 
-    final_clip.write_videofile(output_video_path, codec="libx264")
-
-    logging.info(f"Final video created: {output_video_path}")
-
-    # Close all clips to free memory
-    for clip in all_clips:
+    # Close final clips to free memory
+    for clip in final_clips:
         clip.close()
 
 # Function to read prompts from selected_story.txt
@@ -73,14 +98,16 @@ def read_prompts(file_path):
 
 # Specify the directories
 generations_folder = 'assets\\upscale_generations'
+clips_folder = 'assets\\clips'
 output_folder = 'output'
 selected_story_path = 'selected_story.txt'
+
+# Ensure folders exist
+os.makedirs(clips_folder, exist_ok=True)
+os.makedirs(output_folder, exist_ok=True)
 
 # Read prompts from the selected story
 prompts = read_prompts(selected_story_path)
 
-# Ensure output folder exists
-os.makedirs(output_folder, exist_ok=True)
-
 # Concatenate the videos
-concatenate_videos(generations_folder, output_folder, prompts)
+concatenate_videos(generations_folder, clips_folder, output_folder, prompts)
