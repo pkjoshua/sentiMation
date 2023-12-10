@@ -34,13 +34,12 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
     prompt_text = prompt.strip()
     
     control_net_args = {
-        "input_image": encoded_image,
         "resize_mode" : "Crop and Resize",
         "module": "tile_resample",
         "model": "control_v11f1e_sd15_tile_fp16 [3b860298]",
         "weight": 1,
         "pixel_perfect": True,
-        "control_mode" :"Balanced"
+        "control_mode" :"ControlNet is more important"
     }
 
     animate_diff_args = {
@@ -57,21 +56,22 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
         "interp": "NO",
         "interp_x": 10,
         "latent_power": 1,      # Latent power
-        "latent_scale": 64,     # Latent scale
+        "latent_scale": 32,     # Latent scale
         "last_frame": encoded_image,     # Optional last frame
         "latent_power_last": 1, # Optional latent power for last frame
-        "latent_scale_last": 64
+        "latent_scale_last": 32
     }
 
     # Define the JSON payload
     json_payload = {
         "init_images": [encoded_image],
+        "denoising_strength": 0.78,
         "prompt": prompt_text,
         "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
         "batch_size": 1,
-        "sampler_name": "DDIM",
-        "steps": 10,
-        "cfg_scale": 10,
+        "sampler_name": "DPM2",
+        "steps": 20,
+        "cfg_scale": 20,
         "width": 360,
         "height": 640,
         "alwayson_scripts": {
