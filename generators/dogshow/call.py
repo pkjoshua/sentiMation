@@ -28,10 +28,10 @@ for i in range(5):
     start_time = time.time()
     logging.info(f"Starting sequence {i + 1}")
 
-    run_script('skl_CN_image_gen.py')
-    run_script('skl_generator.py')
-    run_script('skl_upscale.py')
-    run_script('skl_mash.py')
+    run_script('CN_image_gen.py')
+    run_script('generator.py')
+    run_script('upscale.py')
+    run_script('mash.py')
 
     end_time = time.time()
     total_time = end_time - start_time
