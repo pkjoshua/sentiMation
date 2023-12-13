@@ -28,13 +28,14 @@ def overlay_text_on_clip(clip, text):
     # Define an outline text clip (black color) slightly larger size
     txt_clip_outline = TextClip(wrapped_text, fontsize=TXT_FONTSIZE, color=TXT_OUTLINE_COLOR, align='West', method='label', size=(clip.size[0]-MARGIN, None))
 
-    # Position of the text: slightly above the bottom
+    # Position of the text: slightly below the top
     x_position = 'center'
-    y_position = clip.size[1] - txt_clip.size[1] - POSITION_FROM_BOTTOM
+    y_position_top_margin = 800  # You can adjust this value to change the distance from the top
+    y_position = y_position_top_margin
     txt_position = (x_position, y_position)
 
     # Positioning the outline text slightly offset from the main text
-    txt_outline_position = (x_position, y_position - OUTLINE_OFFSET)
+    txt_outline_position = (x_position, y_position + OUTLINE_OFFSET)
 
     txt_clip = txt_clip.set_position(txt_position).set_duration(clip.duration)
     txt_clip_outline = txt_clip_outline.set_position(txt_outline_position).set_duration(clip.duration)
@@ -47,6 +48,7 @@ def overlay_text_on_clip(clip, text):
     final_clip = CompositeVideoClip([clip, txt_clip_outline, txt_clip])
 
     return final_clip.set_duration(clip.duration)
+
 
 def concatenate_videos(video_folder, clips_folder, output_folder, prompts):
     video_files = [os.path.join(video_folder, f) for f in os.listdir(video_folder) if f.endswith(".mp4")]

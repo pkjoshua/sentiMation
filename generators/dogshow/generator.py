@@ -40,7 +40,7 @@ for index, frame_file in enumerate(frame_files):
         "resize_mode" : "Just Resize",
         "module": "tile_resample",
         "model": "control_v11f1e_sd15_tile_fp16 [3b860298]",
-        "weight": 1.5,
+        "weight": 0.7,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
     }]
@@ -53,7 +53,7 @@ for index, frame_file in enumerate(frame_files):
                 "input_image": second_previous_generation,
                 "resize_mode": "Just Resize",
                 "module": "reference_only",
-                "weight": 1.5,
+                "weight": 0.9,
                 "pixel_perfect": True,
                 "control_mode": "ControlNet is more important"
             })
@@ -61,13 +61,13 @@ for index, frame_file in enumerate(frame_files):
     # Define the JSON payload
     json_payload = {
         "init_images": [init_image],
-        "denoising_strength": 0.78,
+        "denoising_strength": 0.3,
         "include_init_images": True,
         "prompt": prompt,
         "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
         "batch_size": 1,
-        "sampler_name": "DPM2",
-        "steps": 20,
+        "sampler_name": "DDIM",
+        "steps": 12,
         "cfg_scale": 10,
         "width": 360,
         "height": 640,
