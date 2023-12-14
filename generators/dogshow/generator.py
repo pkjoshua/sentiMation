@@ -38,22 +38,22 @@ for index, frame_file in enumerate(frame_files):
     # Initial control_net_args configuration
     control_net_args = [{
         "resize_mode" : "Just Resize",
-        "module": "tile_resample",
-        "model": "control_v11f1e_sd15_tile_fp16 [3b860298]",
-        "weight": 0.7,
+        "module": "normal_bae",
+        "model": "control_v11p_sd15_normalbae_fp16 [592a19d8]",
+        "weight": 1.0,
         "pixel_perfect": True,
-        "control_mode": "ControlNet is more important"
+        "control_mode": "Balanced"
     }]
 
     # Modify control_net_args based on the run
     if index > 0:
-        control_net_args[0]["input_image"] = previous_generation
+        control_net_args[0]["input_image"] = init_image
         if index > 1:
             control_net_args.append({
-                "input_image": second_previous_generation,
+                "input_image": previous_generation,
                 "resize_mode": "Just Resize",
                 "module": "reference_only",
-                "weight": 0.9,
+                "weight": 0.4,
                 "pixel_perfect": True,
                 "control_mode": "ControlNet is more important"
             })
@@ -61,16 +61,18 @@ for index, frame_file in enumerate(frame_files):
     # Define the JSON payload
     json_payload = {
         "init_images": [init_image],
-        "denoising_strength": 0.3,
+        "denoising_strength": 0.35,
         "include_init_images": True,
         "prompt": prompt,
         "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
         "batch_size": 1,
+        "seed": 1,
         "sampler_name": "DDIM",
         "steps": 12,
         "cfg_scale": 10,
         "width": 360,
         "height": 640,
+        "mask": mask_image,
         "alwayson_scripts": {
             "ControlNet": {"args": control_net_args}
         }
