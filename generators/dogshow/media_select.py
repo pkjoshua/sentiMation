@@ -5,6 +5,7 @@ import base64
 import os
 import random
 import cv2
+import shutil  # Import shutil for file operations
 
 # Set up logging
 logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
@@ -27,6 +28,11 @@ def split_video_into_frames(video_path, frames_dir):
         success, image = vidcap.read()
         count += 1
 
+def move_video_to_used(video_path, used_dir):
+    if not os.path.exists(used_dir):
+        os.makedirs(used_dir, exist_ok=True)
+    shutil.move(video_path, used_dir)
+
 def select_random_prompt(prompt_dir):
     prompt_files = [os.path.join(prompt_dir, f) for f in os.listdir(prompt_dir) if os.path.isfile(os.path.join(prompt_dir, f))]
     chosen_prompt_file = random.choice(prompt_files)
@@ -38,6 +44,7 @@ def select_random_prompt(prompt_dir):
 video_dir = "assets\\vids"
 frames_dir = "assets\\frames"
 prompt_dir = "assets\\prompts"
+used_dir = "assets\\used"  # Directory for used videos
 
 # Ensure directories exist
 os.makedirs(frames_dir, exist_ok=True)
@@ -46,7 +53,8 @@ os.makedirs(frames_dir, exist_ok=True)
 selected_video = select_random_video(video_dir)
 split_video_into_frames(selected_video, frames_dir)
 
+# Move the selected video to the 'used' directory
+move_video_to_used(selected_video, used_dir)
+
 # Select and save prompt
 select_random_prompt(prompt_dir)
-
-

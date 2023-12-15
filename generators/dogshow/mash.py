@@ -1,15 +1,15 @@
 import cv2
 import os
 import datetime
-import shutil
 import logging
 
 # Set up logging
-logging.basicConfig(filename="skl_gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 def create_video_from_frames(frame_folder, output_folder, fps):
     images = [img for img in os.listdir(frame_folder) if img.endswith(".png")]
-    images.sort(key=lambda x: int(x.split('frame')[1].split('.png')[0]))  # Sorting frames
+    # Sorting frames by their numeric part in the filename
+    images.sort(key=lambda x: int(''.join(filter(str.isdigit, x))))
 
     if not images:
         logging.warning("No images found in the folder.")
@@ -37,22 +37,9 @@ def create_video_from_frames(frame_folder, output_folder, fps):
 
     logging.info(f"Video creation complete: {output_video_path}")
 
-def clear_folder(folder):
-    for file in os.listdir(folder):
-        file_path = os.path.join(folder, file)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            logging.error(f'Failed to delete {file_path}. Reason: {e}')
-
 # Specify the directories
-frame_folder = 'upscale'
+frame_folder = 'assets\\upscale'
 output_folder = 'output'
-lowscale_dir = 'lowscale'
-upscale_dir = 'upscale'
 
 # Ensure output folder exists
 os.makedirs(output_folder, exist_ok=True)
@@ -60,8 +47,4 @@ os.makedirs(output_folder, exist_ok=True)
 # Create the video
 create_video_from_frames(frame_folder, output_folder, fps=30)
 
-# Clear contents of lowscale and upscale folders
-clear_folder(lowscale_dir)
-clear_folder(upscale_dir)
-
-logging.info("Cleared contents of lowscale and upscale directories.")
+logging.info("Video creation from upscaled frames is complete.")
