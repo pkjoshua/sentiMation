@@ -24,7 +24,9 @@ def split_video_into_frames(video_path, frames_dir):
     success, image = vidcap.read()
     count = 0
     while success:
-        cv2.imwrite(os.path.join(frames_dir, f"frame{count}.jpg"), image)     # save frame as JPEG file      
+        # Save frame with zero-padded filename
+        frame_filename = f"frame_{count:04d}.png"
+        cv2.imwrite(os.path.join(frames_dir, frame_filename), image)      
         success, image = vidcap.read()
         count += 1
 

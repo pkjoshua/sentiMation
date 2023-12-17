@@ -29,44 +29,31 @@ generation_dir = "assets\\lowscale"
 os.makedirs(generation_dir, exist_ok=True)
 
 frame_files = sorted(os.listdir(frames_dir))
-first_generation = ""  # Variable to hold the first generation
-previous_generation = ""
+previous_generation_base64 = None  # Variable to store the base64 of the previous generation
 
 for index, frame_file in enumerate(frame_files):
     init_image = encode_image_to_base64(os.path.join(frames_dir, frame_file))
 
-    # Initial control_net_args configuration
+    # Modified control_net_args configuration
     control_net_args = [{
-        "resize_mode" : "Just Resize",
-        "module": "normal_bae",
-        "model": "control_v11p_sd15_normalbae_fp16 [592a19d8]",
-        "weight": 1.0,
-        "pixel_perfect": True,
-        "control_mode": "Balanced"
-    }, {
+        "input_image": previous_generation_base64 if previous_generation_base64 else "null",
         "resize_mode": "Just Resize",
-        "module": "seg_ofade20k",
-        "model": "control_v11p_sd15_seg_fp16 [ab613144]",  # Replace with your segmentation model identifier
+        "module": "none",
+        "model": "temporalnetv3 [b146ac48]",
+        "weight": 0.7,
+        "pixel_perfect": True,
+        "control_mode": "ControlNet is more important"
+    }, {
+        "input_image": init_image,
+        "resize_mode": "Just Resize",
+        "module": "depth_midas",
+        "model": "control_v11f1p_sd15_depth_fp16 [4b72d323]",
         "weight": 1.0,
         "pixel_perfect": True,
-        "control_mode": "Balanced"
+        "control_mode": "ControlNet is more important"
     }]
 
-    # Modify control_net_args based on the run
-    if index > 0:
-        control_net_args[0]["input_image"] = init_image
-        if index > 1:
-            reference_image = first_generation if index == 2 else previous_generation
-            control_net_args.append({
-                "input_image": reference_image,
-                "resize_mode": "Just Resize",
-                "module": "reference_only",
-                "weight": 1.0,
-                "pixel_perfect": True,
-                "control_mode": "Balanced"
-            })
-
-    # Define the JSON payload without mask
+    # Define the JSON payload
     json_payload = {
         "init_images": [init_image],
         "denoising_strength": 0.35,
@@ -74,8 +61,8 @@ for index, frame_file in enumerate(frame_files):
         "prompt": prompt,
         "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
         "batch_size": 1,
-        "seed": 6969,
-        "sampler_name": "DDIM",
+        "seed": -1,
+        "sampler_name": "DPM++ 2M Karras",
         "steps": 20,
         "cfg_scale": 10,
         "width": 360,
@@ -94,15 +81,12 @@ for index, frame_file in enumerate(frame_files):
             base64_data = r['images'][0]
             image_data = base64.b64decode(base64_data)
 
+            # Save the current generation and update the previous generation variable
             output_path = os.path.join(generation_dir, f"generation_{index:04d}.jpg")
             with open(output_path, 'wb') as file:
                 file.write(image_data)
             logging.info(f"Image saved as {output_path}.")
-
-            # Update generation variables for next iteration
-            if index == 1:
-                first_generation = base64_data
-            previous_generation = base64_data
+            previous_generation_base64 = base64_data
         else:
             logging.error(f"No image data found in the response for frame: {frame_file}")
     else:

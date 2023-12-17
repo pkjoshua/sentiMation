@@ -32,10 +32,9 @@ def upscale_images(lowscale_dir, upscale_dir, api_url, headers, json_payload_tem
         image_path = os.path.join(lowscale_dir, image_file)
         upscaled_image = upscale_image(image_path, api_url, headers, json_payload_template)
         if upscaled_image:
-            output_path = os.path.join(upscale_dir, f"upscaled_{image_file}")
+            output_path = os.path.join(upscale_dir, f"{image_file}")
             with open(output_path, 'wb') as file:
                 file.write(upscaled_image)
-            logging.info(f"Upscaled image saved as {output_path}.")
         else:
             logging.error(f"Failed to upscale image: {image_file}")
 
@@ -80,10 +79,11 @@ json_payload_template = {
 }
 
 # Directories
-lowscale_dir = "lowscale"
+lowscale_dir = "assets\\lowscale"
 upscale_dir = "assets\\upscale"
 os.makedirs(lowscale_dir, exist_ok=True)
 os.makedirs(upscale_dir, exist_ok=True)
 
 # Upscale images
 upscale_images(lowscale_dir, upscale_dir, api_url, headers, json_payload_template)
+

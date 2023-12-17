@@ -7,9 +7,10 @@ import logging
 logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 def create_video_from_frames(frame_folder, output_folder, fps):
-    images = [img for img in os.listdir(frame_folder) if img.endswith(".png")]
-    # Sorting frames by their numeric part in the filename
-    images.sort(key=lambda x: int(''.join(filter(str.isdigit, x))))
+    images = [img for img in os.listdir(frame_folder) if img.endswith(".jpg")]
+    # Updated sorting: extracting the number after 'upscaled_generation_'
+    images.sort(key=lambda x: int(x.split('generation_')[1].split('.jpg')[0]))
+
 
     if not images:
         logging.warning("No images found in the folder.")

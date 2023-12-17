@@ -35,11 +35,11 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
     
     control_net_args = {
         "resize_mode" : "Crop and Resize",
-        "module": "tile_resample",
+        "module": "tile_colorfix",
         "model": "control_v11f1e_sd15_tile_fp16 [3b860298]",
         "weight": 1,
         "pixel_perfect": True,
-        "control_mode" :"ControlNet is more important"
+        "control_mode" :"Balanced"
     }
 
     animate_diff_args = {
@@ -55,10 +55,10 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
         "overlap": -1,
         "interp": "NO",
         "interp_x": 10,
-        "latent_power": 1,      # Latent power
+        "latent_power": 0.5,      # Latent power
         "latent_scale": 32,     # Latent scale
         "last_frame": encoded_image,     # Optional last frame
-        "latent_power_last": 1, # Optional latent power for last frame
+        "latent_power_last": 0.5, # Optional latent power for last frame
         "latent_scale_last": 32
     }
 
