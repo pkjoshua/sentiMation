@@ -39,8 +39,8 @@ def run_script(script_name):
 # Run scripts in sequence
 def run_scripts_sequence():
     start_time = time.time()  # Start timing
-    run_script('story_select.py')
-    run_script('CN_image_gen.py')
+    run_script('selector.py')
+    run_script('init_image_gen.py')
     run_script('generator.py')
     run_script('upscale.py')
     run_script('mash.py')
@@ -49,7 +49,7 @@ def run_scripts_sequence():
     gentime_logger.info(f"Total time for sequence: {total_time:.2f} seconds")
 
 # Clear contents of specific directories before running scripts
-directories_to_clear = ['assets\\lowscale', 'assets\\upscale', 'assets\\lowscale', 'assets\\controlnet','assets\\generations','assets\\upscale_generations']
+directories_to_clear = ['assets\\lowscale', 'assets\\upscale', 'assets\\lowscale', 'assets\\init','assets\\generations','assets\\upscale_generations']
 for directory in directories_to_clear:
     clear_directory(directory)
 

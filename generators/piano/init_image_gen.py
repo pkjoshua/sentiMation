@@ -18,7 +18,7 @@ api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
 # Process and save the image
 def process_and_save_image(base64_image, file_index, output_dir):
     image_bytes = base64.b64decode(base64_image)
-    file_path = os.path.join(output_dir, f"controlnet_image_{file_index:04d}.png")
+    file_path = os.path.join(output_dir, f"init_image_{file_index:04d}.png")
     with open(file_path, "wb") as image_file:
         image_file.write(image_bytes)
     logging.info(f"Saved image at {file_path}")
@@ -49,7 +49,7 @@ selected_story_file = "selected_story.txt"
 prompts = read_prompts(selected_story_file)
 
 # Output directory
-output_dir = "assets\\controlnet"
+output_dir = "assets\\init"
 os.makedirs(output_dir, exist_ok=True)
 
 # Make API calls for each prompt
