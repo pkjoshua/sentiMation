@@ -4,6 +4,12 @@ import json
 import logging
 import os
 
+INITIAL_DENOISING_STRENGTH = 0.42
+INITIAL_CFG_SCALE = 8
+CONTINUING_DENOISING_STRENGTH = 0.40
+CONTINUING_CFG_SCALE = 5
+USE_CURRENT_FRAME = True 
+
 # Set up logging
 logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
@@ -32,22 +38,25 @@ frame_files = sorted(os.listdir(frames_dir))
 previous_generation_base64 = None  # Variable to store the base64 of the previous generation
 
 for index, frame_file in enumerate(frame_files):
-    init_image = encode_image_to_base64(os.path.join(frames_dir, frame_file))
+    current_frame_base64 = encode_image_to_base64(os.path.join(frames_dir, frame_file))
+
+    # Handling init_image based on settings
+    if index == 0 or USE_CURRENT_FRAME:
+        init_image = current_frame_base64
+        denoising_strength = INITIAL_DENOISING_STRENGTH
+        cfg_scale = INITIAL_CFG_SCALE
+    else:
+        init_image = previous_generation_base64
+        denoising_strength = CONTINUING_DENOISING_STRENGTH
+        cfg_scale = CONTINUING_CFG_SCALE
 
     # Modified control_net_args configuration
     control_net_args = [{
-        "input_image": previous_generation_base64 if previous_generation_base64 else "null",
+        "input_image": current_frame_base64,
         "resize_mode": "Just Resize",
-        "module": "tile_resample",
-        "model": "control_v11f1e_sd15_tile_fp16 [3b860298]",
-        "weight": 0.5,
-        "pixel_perfect": True,
-        "control_mode": "ControlNet is more important"
-    }, {
-        "input_image": previous_generation_base64 if previous_generation_base64 else "null",
-        "resize_mode": "Just Resize",
-        "module": "reference_only",
-        "weight": 0.8,
+        "module": "segmentation",
+        "model": "control_v11p_sd15_seg_fp16 [ab613144]",
+        "weight": 1,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
     }, {
@@ -63,15 +72,15 @@ for index, frame_file in enumerate(frame_files):
     # Define the JSON payload
     json_payload = {
         "init_images": [init_image],
-        "denoising_strength": 0.43,
+        "denoising_strength": denoising_strength,
         "include_init_images": True,
         "prompt": prompt,
-        "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
+        "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw, humans, human hands",
         "batch_size": 1,
-        "seed": -1,
+        "seed": 1,
         "sampler_name": "DPM++ 2M Karras",
         "steps": 20,
-        "cfg_scale": 10,
+        "cfg_scale": cfg_scale,
         "width": 360,
         "height": 640,
         "alwayson_scripts": {

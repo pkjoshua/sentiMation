@@ -43,6 +43,7 @@ def run_scripts_sequence():
     run_script('generator.py')
     run_script('upscale.py')
     run_script('mash.py')
+    run_script('notify.py')
     end_time = time.time()  # End timing
     total_time = end_time - start_time
     gentime_logger.info(f"Total time for sequence: {total_time:.2f} seconds")
