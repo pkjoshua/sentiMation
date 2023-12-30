@@ -3,6 +3,7 @@ import datetime
 import logging
 import textwrap
 import random
+import shutil
 from moviepy.editor import VideoFileClip, concatenate_videoclips, TextClip, CompositeVideoClip
 
 # Constants for easy adjustments
@@ -21,12 +22,17 @@ STROKE_WIDTH = 1
 # Set up logging
 logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
-def get_random_quote(quotes_folder):
+def get_random_quote(quotes_folder, used_folder):
     """Read a random text file from the given folder and return its content."""
     files = [f for f in os.listdir(quotes_folder) if os.path.isfile(os.path.join(quotes_folder, f))]
     random_file = random.choice(files)
     with open(os.path.join(quotes_folder, random_file), 'r', encoding='utf-8') as file:
-        return file.read().strip()
+        quote = file.read().strip()
+
+    # Move the file to the used folder
+    shutil.move(os.path.join(quotes_folder, random_file), os.path.join(used_folder, random_file))
+
+    return quote
 
 def overlay_text_on_clip(clip, text):
     """Overlay text on a given video clip with fade-in effect."""
@@ -68,7 +74,7 @@ def concatenate_videos(video_folder, output_folder, quotes_folder):
     final_clip = concatenate_videoclips(all_clips, method="compose")
 
     # Get random quote
-    random_quote = get_random_quote(quotes_folder)
+    random_quote = get_random_quote(quotes_folder, used_folder)
 
     # Overlay text on the final clip
     final_clip = overlay_text_on_clip(final_clip, random_quote)
@@ -90,6 +96,10 @@ def concatenate_videos(video_folder, output_folder, quotes_folder):
 generations_folder = 'assets\\upscale_generations'
 output_folder = 'output'
 quotes_folder = 'assets\\quotes'
+used_folder = 'assets\\used'
+
+# Ensure used folder exists
+os.makedirs(used_folder, exist_ok=True)
 
 # Ensure output folder exists
 os.makedirs(output_folder, exist_ok=True)

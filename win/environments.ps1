@@ -1,6 +1,6 @@
 # Define the task name and task action
-$taskName = "dogshow_Generator"
-$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\dogshow\call.py' -WorkingDirectory 'D:\sentiMation\generators\dogshow'
+$taskName = "environments_Generator"
+$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\environments\call.py' -WorkingDirectory 'D:\sentiMation\generators\environments'
 
 # Check if the task already exists
 $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
@@ -8,7 +8,7 @@ $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
 # If task doesn't exist, create it
 if (-not $taskExists) {
     Write-Host "Task does not exist. Creating new task."
-    $taskTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Wednesday,Thursday -At 6am
+    $taskTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Tuesday,Friday,Saturday,Sunday -At 6am
     $taskSettings = New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
     $principal = New-ScheduledTaskPrincipal -UserId "PALADIN1\josh" -LogonType ServiceAccount -RunLevel Highest
 

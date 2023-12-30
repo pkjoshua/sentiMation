@@ -36,18 +36,18 @@ for index, frame_file in enumerate(frame_files):
 
     # Modified control_net_args configuration
     control_net_args = [{
-        "input_image": previous_generation_base64 if previous_generation_base64 else "null",
+        "input_image": init_image,
         "resize_mode": "Just Resize",
-        "module": "reference_adain+attn",
-        "weight": 1.5,
+        "module": "depth_midas",
+        "model": "control_v11f1p_sd15_depth_fp16 [4b72d323]",
+        "weight": 1.0,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
     }, {
-        "input_image": init_image,
+        "input_image": previous_generation_base64 if previous_generation_base64 else "null",
         "resize_mode": "Just Resize",
-        "module": "depth",
-        "model": "control_v11f1p_sd15_depth_fp16 [4b72d323]",
-        "weight": 1,
+        "module": "reference_adain+attn",
+        "weight": 2,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
     }, {
@@ -55,7 +55,7 @@ for index, frame_file in enumerate(frame_files):
         "resize_mode": "Just Resize",
         "module": "none",
         "model": "temporalnetv3 [b146ac48]",
-        "weight": 0.8,
+        "weight": 1,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
     }]
@@ -63,7 +63,7 @@ for index, frame_file in enumerate(frame_files):
     # Define the JSON payload
     json_payload = {
         "init_images": [init_image],
-        "denoising_strength": 0.4,
+        "denoising_strength": 0.42,
         "include_init_images": True,
         "prompt": prompt,
         "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
