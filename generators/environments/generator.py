@@ -52,10 +52,10 @@ for index, frame_file in enumerate(frame_files):
 
     # Modified control_net_args configuration
     control_net_args = [{
-        "input_image": current_frame_base64,
+        "input_image": current_frame_base64,  # Using current frame for depth control net
         "resize_mode": "Just Resize",
-        "module": "segmentation",
-        "model": "control_v11p_sd15_seg_fp16 [ab613144]",
+        "module": "depth",
+        "model": "control_v11f1p_sd15_depth_fp16 [4b72d323]",
         "weight": 1,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
@@ -64,7 +64,7 @@ for index, frame_file in enumerate(frame_files):
         "resize_mode": "Just Resize",
         "module": "none",
         "model": "temporalnetv3 [b146ac48]",
-        "weight": 0.4,
+        "weight": 0.8,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
     }]
@@ -77,7 +77,7 @@ for index, frame_file in enumerate(frame_files):
         "prompt": prompt,
         "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw, humans, human hands",
         "batch_size": 1,
-        "seed": 1,
+        "seed": -1,
         "sampler_name": "DPM++ 2M Karras",
         "steps": 20,
         "cfg_scale": cfg_scale,

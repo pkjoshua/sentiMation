@@ -34,7 +34,7 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
         "model": "mm_sd_v15_v2.ckpt",
         "format": ['MP4'],
         "enable": True,
-        "video_length": 100,
+        "video_length": 120,
         "fps": 20,
         "loop_number": 0,
         "closed_loop": "N",

@@ -44,7 +44,8 @@ def run_all_scripts():
     run_script('pokemon_generator.py')  # Generate Animation and mask
     run_script('pokemon_upscale.py')  # Upscale frames and create mp4
     run_script('pokemon_background_overlay.py')  # Overlay background
-    run_script('pokemon_mash.py')  # Append audio
+    run_script('pokemon_mash.py')
+    run_script('notify.py')  # Append audio
     total_time = time.time() - start_time
     gentime_logger.info(f"Total time for all scripts: {total_time:.2f} seconds")
 
