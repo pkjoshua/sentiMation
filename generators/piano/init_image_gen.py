@@ -45,7 +45,7 @@ def make_api_call_and_save(prompt, index, output_dir):
         logging.error(f"API call for prompt '{prompt}' failed with status code {response.status_code}")
 
 # Read prompts
-selected_story_file = "selected_story.txt"
+selected_story_file = "prompt.txt"
 prompts = read_prompts(selected_story_file)
 
 # Output directory

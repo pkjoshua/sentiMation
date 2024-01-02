@@ -4,9 +4,9 @@ import json
 import logging
 import os
 
-INITIAL_DENOISING_STRENGTH = 0.42
+INITIAL_DENOISING_STRENGTH = 0.45
 INITIAL_CFG_SCALE = 8
-CONTINUING_DENOISING_STRENGTH = 0.40
+CONTINUING_DENOISING_STRENGTH = 0.30
 CONTINUING_CFG_SCALE = 5
 USE_CURRENT_FRAME = True 
 
@@ -101,7 +101,6 @@ for index, frame_file in enumerate(frame_files):
             output_path = os.path.join(generation_dir, f"generation_{index:04d}.jpg")
             with open(output_path, 'wb') as file:
                 file.write(image_data)
-            logging.info(f"Image saved as {output_path}.")
             previous_generation_base64 = base64_data
         else:
             logging.error(f"No image data found in the response for frame: {frame_file}")

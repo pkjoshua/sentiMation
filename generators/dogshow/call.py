@@ -2,6 +2,7 @@ import subprocess
 import logging
 import time
 import os
+import shutil
 
 # Set up logging
 logging.basicConfig(filename='gen.log', level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')

@@ -24,7 +24,7 @@ generation_dir = "assets\\generations"
 os.makedirs(generation_dir, exist_ok=True)
 
 controlnet_images = sorted(os.listdir(controlnet_dir))
-prompts = read_prompts("selected_story.txt")
+prompts = read_prompts("prompt.txt")
 
 for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
     encoded_image = encode_image_to_base64(os.path.join(controlnet_dir, image_name))
@@ -35,7 +35,7 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
         "format": ['MP4'],
         "enable": True,
         "video_length": 120,
-        "fps": 20,
+        "fps": 30,
         "loop_number": 0,
         "closed_loop": "N",
         "batch_size": 16,
