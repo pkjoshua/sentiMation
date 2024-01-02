@@ -34,3 +34,5 @@ generators/pokemon/assets/sound/scrape_music.ps1
 *.MOV
 
 *.json
+
+*.xlsx
