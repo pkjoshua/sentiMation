@@ -5,9 +5,9 @@ import logging
 import os
 
 INITIAL_DENOISING_STRENGTH = 0.45
-INITIAL_CFG_SCALE = 8
-CONTINUING_DENOISING_STRENGTH = 0.30
-CONTINUING_CFG_SCALE = 5
+INITIAL_CFG_SCALE = 11
+CONTINUING_DENOISING_STRENGTH = 0.25
+CONTINUING_CFG_SCALE = 3
 USE_CURRENT_FRAME = True 
 
 # Set up logging
@@ -65,6 +65,14 @@ for index, frame_file in enumerate(frame_files):
         "module": "none",
         "model": "temporalnetv3 [b146ac48]",
         "weight": 0.8,
+        "pixel_perfect": True,
+        "control_mode": "ControlNet is more important"
+    }, {
+        "input_image": previous_generation_base64 if previous_generation_base64 else "null",
+        "resize_mode": "Just Resize",
+        "module": "reference_adain+attn",
+        "model": "none",
+        "weight": 0.75,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
     }]

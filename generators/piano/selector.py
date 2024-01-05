@@ -75,7 +75,7 @@ try:
 
     # Split the quote into lines and format it
     quote_lines = quote.split('\n')
-    formatted_quote = f'"{quote_lines[0]}"\n{quote_lines[1]}' if len(quote_lines) > 1 else f'"{quote}"'
+    formatted_quote = f'"{quote_lines[0]}"\n-{quote_lines[1]}' if len(quote_lines) > 1 else f'"{quote}"'
     
     # Save the formatted quote
     save_quote(formatted_quote)

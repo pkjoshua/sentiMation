@@ -1,5 +1,4 @@
-import http.client
-import urllib.parse
+import requests
 import os
 
 def send_pushover_notification(message):
@@ -10,17 +9,32 @@ def send_pushover_notification(message):
         print("Pushover API token or user key not found in environment variables.")
         return
 
-    conn = http.client.HTTPSConnection("api.pushover.net:443")
-    conn.request("POST", "/1/messages.json",
-                 urllib.parse.urlencode({
-                     "token": pushover_token,
-                     "user": pushover_user,
-                     "message": message,
-                 }), {"Content-type": "application/x-www-form-urlencoded"})
-    response = conn.getresponse()
-    print(response.status, response.reason)
+    image_path = "assets/frames/frame_0000.png"
 
-    conn.close()
+    # Check if the image file exists
+    if not os.path.isfile(image_path):
+        print("Image file not found.")
+        return
+
+    # Prepare the data and files payload for the request
+    data = {
+        "token": pushover_token,
+        "user": pushover_user,
+        "message": message
+    }
+    files = {
+        "attachment": ("frame_0000.png", open(image_path, "rb"), "image/png")
+    }
+
+    # Send the request
+    try:
+        response = requests.post("https://api.pushover.net/1/messages.json", data=data, files=files)
+        print(response.text)
+    except Exception as e:
+        print(f"Error sending notification: {e}")
+    finally:
+        if 'attachment' in files:
+            files['attachment'][1].close()
 
 # Example usage
-send_pushover_notification("Generation process completed.")
+send_pushover_notification("Dogshow generation process completed.")

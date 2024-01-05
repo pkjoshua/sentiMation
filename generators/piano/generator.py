@@ -35,7 +35,7 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
         "format": ['MP4'],
         "enable": True,
         "video_length": 120,
-        "fps": 30,
+        "fps": 20,
         "loop_number": 0,
         "closed_loop": "N",
         "batch_size": 16,
