@@ -15,6 +15,9 @@ gentime_handler = logging.FileHandler('gentime.log')
 gentime_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
 gentime_logger.addHandler(gentime_handler)
 
+# Add a flag to indicate whether this script started the server
+server_started_by_script = False
+
 # Function to check if server is running
 def is_server_running(host="127.0.0.1", port=7860):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -22,9 +25,17 @@ def is_server_running(host="127.0.0.1", port=7860):
 
 # Function to start the server
 def start_server():
+    global server_started_by_script
     command = "%windir%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -ExecutionPolicy ByPass -NoExit -Command \"& 'C:\\Users\\Josh\\miniconda3\\shell\\condabin\\conda-hook.ps1' ; conda activate 'C:\\Users\\Josh\\miniconda3' ; conda activate sd ; python 'D:\\stable-diffusion-webui\\launch.py'"
     subprocess.Popen(command, shell=True)
     time.sleep(30)  # Wait for the server to start
+    server_started_by_script = True
+
+# Function to stop the server
+def stop_server():
+    # Replace the following command with the appropriate one to stop your server
+    stop_command = "COMMAND_TO_STOP_SERVER"
+    subprocess.Popen(stop_command, shell=True)
 
 # Function to clear the contents of a directory
 def clear_directory(directory):
@@ -80,5 +91,11 @@ if __name__ == "__main__":
 
     # Run the script sequence
     run_scripts_sequence()
+
+        # Stop the server if it was started by this script
+    if server_started_by_script:
+        logging.info("Stopping the server started by the script...")
+        stop_server()
+        logging.info("Server stopped.")
 
     print("Script sequence complete.")

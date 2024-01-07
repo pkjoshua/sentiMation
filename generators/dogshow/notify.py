@@ -9,7 +9,7 @@ def send_pushover_notification(message):
         print("Pushover API token or user key not found in environment variables.")
         return
 
-    image_path = "assets/frames/frame_0000.png"
+    image_path = "assets/upscale/generation_0000.jpg"
 
     # Check if the image file exists
     if not os.path.isfile(image_path):
@@ -23,7 +23,7 @@ def send_pushover_notification(message):
         "message": message
     }
     files = {
-        "attachment": ("frame_0000.png", open(image_path, "rb"), "image/png")
+        "attachment": ("generation_0000.jpg", open(image_path, "rb"), "image/png")
     }
 
     # Send the request

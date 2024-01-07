@@ -7,7 +7,7 @@ app = Flask(__name__)
 green_tasks = ["piano_generator", "pokemon_generator", "dogshow_generator", "environments_generator"]
 
 # Tasks for blue buttons
-blue_tasks = ["mirror_to_post"]
+blue_tasks = ["mirror_to_post","sleep"]
 
 @app.route('/run_task/<task_name>')
 def run_task(task_name):

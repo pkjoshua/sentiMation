@@ -4,10 +4,10 @@ import json
 import logging
 import os
 
-INITIAL_DENOISING_STRENGTH = 0.45
+INITIAL_DENOISING_STRENGTH = 0.50
 INITIAL_CFG_SCALE = 11
-CONTINUING_DENOISING_STRENGTH = 0.25
-CONTINUING_CFG_SCALE = 3
+CONTINUING_DENOISING_STRENGTH = 0.50
+CONTINUING_CFG_SCALE = 4
 USE_CURRENT_FRAME = True 
 
 # Set up logging
@@ -46,17 +46,17 @@ for index, frame_file in enumerate(frame_files):
         denoising_strength = INITIAL_DENOISING_STRENGTH
         cfg_scale = INITIAL_CFG_SCALE
     else:
-        init_image = previous_generation_base64
+        init_image = current_frame_base64
         denoising_strength = CONTINUING_DENOISING_STRENGTH
         cfg_scale = CONTINUING_CFG_SCALE
 
     # Modified control_net_args configuration
     control_net_args = [{
-        "input_image": current_frame_base64,  # Using current frame for depth control net
+        "input_image": previous_generation_base64 if previous_generation_base64 else "null",
         "resize_mode": "Just Resize",
-        "module": "depth",
-        "model": "control_v11f1p_sd15_depth_fp16 [4b72d323]",
-        "weight": 1,
+        "module": "reference_adain+attn",
+        "model": "none",
+        "weight": 0.45,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
     }, {
@@ -64,17 +64,9 @@ for index, frame_file in enumerate(frame_files):
         "resize_mode": "Just Resize",
         "module": "none",
         "model": "temporalnetv3 [b146ac48]",
-        "weight": 0.8,
+        "weight": 0.2,
         "pixel_perfect": True,
-        "control_mode": "ControlNet is more important"
-    }, {
-        "input_image": previous_generation_base64 if previous_generation_base64 else "null",
-        "resize_mode": "Just Resize",
-        "module": "reference_adain+attn",
-        "model": "none",
-        "weight": 0.75,
-        "pixel_perfect": True,
-        "control_mode": "ControlNet is more important"
+        "control_mode": "Prompt is more important"
     }]
 
     # Define the JSON payload
@@ -85,7 +77,7 @@ for index, frame_file in enumerate(frame_files):
         "prompt": prompt,
         "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw, humans, human hands",
         "batch_size": 1,
-        "seed": -1,
+        "seed": 1337,
         "sampler_name": "DPM++ 2M Karras",
         "steps": 20,
         "cfg_scale": cfg_scale,

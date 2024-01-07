@@ -3,6 +3,7 @@ import logging
 import time
 import os
 import shutil
+import socket
 
 # Set up main logging
 logging.basicConfig(filename='pokemon_log.log', level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
@@ -13,6 +14,17 @@ gentime_handler = logging.FileHandler('gentime.log')
 gentime_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
 gentime_logger.addHandler(gentime_handler)
 gentime_logger.setLevel(logging.INFO)
+
+# Function to check if server is running
+def is_server_running(host="127.0.0.1", port=7860):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex((host, port)) == 0
+
+# Function to start the server
+def start_server():
+    command = "%windir%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -ExecutionPolicy ByPass -NoExit -Command \"& 'C:\\Users\\Josh\\miniconda3\\shell\\condabin\\conda-hook.ps1' ; conda activate 'C:\\Users\\Josh\\miniconda3' ; conda activate sd ; python 'D:\\stable-diffusion-webui\\launch.py'"
+    subprocess.Popen(command, shell=True)
+    time.sleep(30)  # Wait for the server to start
 
 # Function to clear the contents of a directory
 def clear_directory(directory):
@@ -48,6 +60,18 @@ def run_all_scripts():
     run_script('notify.py')  # Append audio
     total_time = time.time() - start_time
     gentime_logger.info(f"Total time for all scripts: {total_time:.2f} seconds")
+
+# Main execution
+if __name__ == "__main__":
+    # Check if server is running, and start if not
+    if not is_server_running():
+        logging.info("Server is not running. Starting server...")
+        start_server()
+        if not is_server_running():
+            logging.error("Failed to start server. Exiting.")
+            exit(1)
+        else:
+            logging.info("Server started successfully.")
 
 # Clear contents of specific directories before running scripts
 directories_to_clear = ['lowscale', 'upscale', 'upscale_process','upscale_overlay']

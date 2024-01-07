@@ -4,9 +4,9 @@ import json
 import logging
 import os
 
-INITIAL_DENOISING_STRENGTH = 0.42
+INITIAL_DENOISING_STRENGTH = 0.45
 INITIAL_CFG_SCALE = 8
-CONTINUING_DENOISING_STRENGTH = 0.40
+CONTINUING_DENOISING_STRENGTH = 0.25
 CONTINUING_CFG_SCALE = 5
 USE_CURRENT_FRAME = True 
 
@@ -67,6 +67,14 @@ for index, frame_file in enumerate(frame_files):
         "weight": 0.4,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
+    }, {
+        "input_image": previous_generation_base64 if previous_generation_base64 else "null",
+        "resize_mode": "Just Resize",
+        "module": "reference_adain+attn",
+        "model": "none",
+        "weight": 0.75,
+        "pixel_perfect": True,
+        "control_mode": "ControlNet is more important"
     }]
 
     # Define the JSON payload
@@ -77,7 +85,7 @@ for index, frame_file in enumerate(frame_files):
         "prompt": prompt,
         "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw, humans, human hands",
         "batch_size": 1,
-        "seed": 1,
+        "seed": -1,
         "sampler_name": "DPM++ 2M Karras",
         "steps": 20,
         "cfg_scale": cfg_scale,
