@@ -9,7 +9,7 @@ logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s 
 def create_video_from_frames(frame_folder, output_folder, fps):
     images = [img for img in os.listdir(frame_folder) if img.endswith(".jpg")]
     # Updated sorting: extracting the number after 'upscaled_generation_'
-    images.sort(key=lambda x: int(x.split('generation_')[1].split('.jpg')[0]))
+    images.sort(key=lambda x: int(x.split('Frame-')[1].split('.png')[0]))
 
 
     if not images:
