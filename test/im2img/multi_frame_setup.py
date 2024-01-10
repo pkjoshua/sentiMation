@@ -1,92 +1,160 @@
-import cv2
-import json
-import os
+## This is a 2 image reel multi frame api call script. Borrowing the methodology from Xanthius. His script was designed to run through the wubui of automatic1111. This own is used to run against a server 
+## The script starts by generating an image
+## The first generation is appended to the left of the incoming frame, which is then used as a base to generate the 2nd frame. An inpaint mask is used to ensure there is no overlap. 
+## This is the first implementation of this method. A third image is possible and practical. 
+
+import requests
 import base64
-import tempfile
+import json
+import logging
+import os
+import io
+from PIL import Image
 
-def video_to_frames(video_filename, vids_dir='D:\\sentiMation\\generators\\dogshow\\assets\\vids', frames_dir='D:\\sentiMation\\generators\\dogshow\\assets\\frames'):
-    # Construct full paths for video and frames directory
-    video_path = os.path.join(vids_dir, video_filename)
-    output_dir = os.path.join(frames_dir, video_filename.split('.')[0])  # Separate directory for each video
+# Constants
+INITIAL_DENOISING_STRENGTH = 0.75
+INITIAL_CFG_SCALE = 8
+CONTINUING_DENOISING_STRENGTH = 0.45
+CONTINUING_CFG_SCALE = 5
+INITIAL_WIDTH = 360
+SUBSEQUENT_WIDTH = 720
+HEIGHT = 640
 
-    # Create the frames directory if it doesn't exist
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+# Set up logging
+logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
-    # Open the video file
-    cap = cv2.VideoCapture(video_path)
+# Function to encode image to base64
+def encode_image_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
 
-    frame_paths = []
-    frame_count = 0
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
+# Function to resize image
+def resize_image(image_path, width, height):
+    with Image.open(image_path) as img:
+        resized_img = img.resize((width, height), Image.Resampling.LANCZOS)
+        resized_img_path = "temp_resized.jpg"
+        resized_img.save(resized_img_path)
+        return resized_img_path
 
-        # Save frame as JPEG file
-        frame_path = os.path.join(output_dir, f"frame_{frame_count:05}.jpg")
-        cv2.imwrite(frame_path, frame)
-        frame_paths.append(frame_path)
-        frame_count += 1
+# Function to combine two images side by side
+def combine_images(left_image_path, right_image_path):
+    images = [Image.open(x) for x in [left_image_path, right_image_path]]
+    total_width = SUBSEQUENT_WIDTH
+    max_height = HEIGHT
 
-    cap.release()
-    return frame_paths
+    new_im = Image.new('RGB', (total_width, max_height))
 
-def construct_payload(frame_paths, script_name):
-    # Create a temporary directory
-    temp_dir = tempfile.mkdtemp()
+    # Left image is the previously generated one, right image is the next input frame
+    new_im.paste(Image.open(left_image_path), (0,0))
+    new_im.paste(Image.open(right_image_path), (INITIAL_WIDTH,0))
 
-    script_args = [None] * 10  # Adjust the length as needed
+    combined_image_path = "temp_combined.jpg"
+    new_im.save(combined_image_path)
+    return combined_image_path
 
-    script_args[0] = "None"
+# Function to create mask image
+def create_mask():
+    mask = Image.new("L", (SUBSEQUENT_WIDTH, HEIGHT), 0)
+    right_half = Image.new("L", (INITIAL_WIDTH, HEIGHT), 255)
+    mask.paste(right_half, (INITIAL_WIDTH, 0))
+    mask_path = "mask.jpg"
+    mask.save(mask_path)
+    return mask_path
 
-    frame_list = []
-    for path in frame_paths:
-        # Read and base64 encode the frame
-        with open(path, "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+# Read prompt from file
+def read_prompt(file_path):
+    with open(file_path, "r") as file:
+        return file.readline().strip()
 
-        frame_arg = {
-            "_closer": {
-                "delete": False,
-                "file": {"data": encoded_string},
-                "name": temp_dir
-            },
-            "delete": False,
-            "file": {"data": encoded_string},
-            "name": path,
-            "orig_name": path
-        }
-        frame_list.append(frame_arg)
-    script_args[1] = frame_list
+# Define the API URL
+api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
 
-        # Assign other script_args elements as necessary
-    script_args[2] = 0.8
-    script_args[3] = "GuideImg"
-    script_args[4] = True
-    script_args[5] = False
-    script_args[6] = False
-    script_args[7] = 1
-    script_args[8] = 1
-    script_args[9] = "FirstGen"
+# Directories
+frames_dir = "assets\\frames"
+generation_dir = "assets\\lowscale"
+reels_dir = "assets\\reels"
+os.makedirs(generation_dir, exist_ok=True)
+os.makedirs(reels_dir, exist_ok=True)
 
-    return {
-        "script_name": script_name,
-        "script_args": script_args
+frame_files = sorted(os.listdir(frames_dir))
+previous_generation_path = None
+prompt = read_prompt("chosen_prompt.txt")
+
+for index, frame_file in enumerate(frame_files):
+    original_frame_path = os.path.join(frames_dir, frame_file)
+    resized_frame_path = resize_image(original_frame_path, INITIAL_WIDTH, HEIGHT)
+
+    if index == 0:
+        # For the first frame, use the resized frame directly and save the response as is
+        init_image = encode_image_to_base64(resized_frame_path)
+        denoising_strength = INITIAL_DENOISING_STRENGTH
+        cfg_scale = INITIAL_CFG_SCALE
+        mask_image = None  # No mask for the first frame
+    else:
+        # For subsequent frames, combine images and apply mask
+        combined_image_path = combine_images(previous_generation_path, resized_frame_path)
+        combined_image_base64 = encode_image_to_base64(combined_image_path)
+
+        # Save combined reel image
+        reel_path = os.path.join(reels_dir, f"reel_{index:04d}.jpg")
+        Image.open(combined_image_path).save(reel_path)
+        logging.info(f"Reel {index:04d} saved as {reel_path}.")
+
+        # Create and encode mask
+        mask_path = create_mask()
+        mask_image = encode_image_to_base64(mask_path)
+
+        init_image = combined_image_base64
+        denoising_strength = CONTINUING_DENOISING_STRENGTH
+        cfg_scale = CONTINUING_CFG_SCALE
+
+    # Define the JSON payload
+    json_payload = {
+        "init_images": [init_image],
+        "denoising_strength": denoising_strength,
+        "include_init_images": True,
+        "mask": None,
+        "guidance_scale": 7.5,
+        "inpainting_fill": 0,
+        "mask_blur": 0,
+        "inpaint_full_res": True,
+        "inpaint_full_res_padding": 32,
+        "prompt": prompt,
+        "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw, humans, human hands",
+        "batch_size": 1,
+        "seed": -1,
+        "sampler_name": "DPM++ 2M Karras",
+        "steps": 20,
+        "cfg_scale": cfg_scale,
+        "width": INITIAL_WIDTH if index == 0 else SUBSEQUENT_WIDTH,
+        "height": HEIGHT,
+        "alwayson_scripts": {}
     }
 
-# Example usage
-video_filename = 'test.mp4'  # Replace with your video file name
-script_name = "multi-frame video - v0.72-beta (fine version)"
+  # Call the API
+    response = requests.post(api_url, headers={"Content-Type": "application/json"}, json=json_payload)
 
-frame_paths = video_to_frames(video_filename)
-payload = construct_payload(frame_paths, script_name)
+ # Process the response
+    if response.status_code == 200:
+        r = response.json()
+        if 'images' in r and r['images']:
+            image_data = base64.b64decode(r['images'][0])
+            with Image.open(io.BytesIO(image_data)) as img:
+                if index == 0:
+                    # Save the first frame as is
+                    first_frame_path = os.path.join(generation_dir, f"generation_{index:04d}.jpg")
+                    img.save(first_frame_path)
+                    previous_generation_path = first_frame_path
+                    logging.info(f"First frame saved as {first_frame_path}.")
+                else:
+                    # Save the right side of the combined image as the next generation
+                    right_side = img.crop((INITIAL_WIDTH, 0, SUBSEQUENT_WIDTH, HEIGHT))
+                    next_generation_path = os.path.join(generation_dir, f"generation_{index:04d}.jpg")
+                    right_side.save(next_generation_path)
 
-# Convert payload to JSON
-json_payload = json.dumps(payload, indent=4)
-
-# Save the JSON payload to scriptargs.txt
-with open('scriptargs.txt', 'w') as file:
-    file.write(json_payload)
-
-print("Payload saved to scriptargs.txt")
+                    previous_generation_path = next_generation_path
+                    logging.info(f"Frame {index:04d} saved as {next_generation_path}.")
+        else:
+            logging.error(f"No image data found in the response for frame: {frame_file}")
+    else:
+        logging.error(f"API call failed for frame: {frame_file}. Status Code: {response.status_code}, Response: {response.text}")

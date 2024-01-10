@@ -7,9 +7,9 @@ import io
 from PIL import Image
 
 # Constants
-INITIAL_DENOISING_STRENGTH = 0.50
-INITIAL_CFG_SCALE = 12
-CONTINUING_DENOISING_STRENGTH = 0.45
+INITIAL_DENOISING_STRENGTH = 0.5
+INITIAL_CFG_SCALE = 8
+CONTINUING_DENOISING_STRENGTH = 0.5
 CONTINUING_CFG_SCALE = 5
 INITIAL_WIDTH = 360
 SUBSEQUENT_WIDTH = 720
@@ -107,19 +107,19 @@ for index, frame_file in enumerate(frame_files):
     control_net_args = [{
         "input_image": None,
         "resize_mode": "Just Resize",
-        "module": "depth_midas",
-        "model": "control_v11f1p_sd15_depth_fp16 [4b72d323]",
-        "weight": 0.8,
+        "module": "normal_bae",
+        "model": "control_v11p_sd15_normalbae_fp16 [592a19d8]",
+        "weight": 1,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
     }, {
         "input_image": None,
         "resize_mode": "Just Resize",
-        "module": "tile_colorfix+sharp",
-        "model": "control_v11f1e_sd15_tile_fp16 [3b860298]",
-        "weight": 0.2,
+        "module": "openpose_full",
+        "model": "control_v11p_sd15_openpose_fp16 [73c2b67d]",
+        "weight": 1,
         "pixel_perfect": True,
-        "control_mode": "Balanced"
+        "control_mode": "ControlNet is more important"
     }, {
         "input_image": None,
         "resize_mode": "Just Resize",
@@ -143,7 +143,7 @@ for index, frame_file in enumerate(frame_files):
         "inpaint_full_res": True,
         "inpaint_full_res_padding": 32,
         "prompt": prompt,
-        "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw, humans, human hands",
+        "negative_prompt": "bad quality, blurry, grainy, jagged, deformed, nude, nsfw, mutation, artifacts",
         "batch_size": 1,
         "seed": 1337,
         "sampler_name": "DPM++ 2M Karras",

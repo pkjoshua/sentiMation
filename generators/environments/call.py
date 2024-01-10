@@ -85,7 +85,7 @@ if __name__ == "__main__":
             logging.info("Server started successfully.")
 
     # Clear contents of specific directories before running scripts
-    directories_to_clear = ['assets\\lowscale', 'assets\\frames', 'assets\\upscale']
+    directories_to_clear = ['assets\\lowscale', 'assets\\frames', 'assets\\upscale','assets\\reels']
     for directory in directories_to_clear:
         clear_directory(directory)
 

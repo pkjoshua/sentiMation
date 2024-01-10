@@ -2,20 +2,37 @@ import cv2
 import os
 import datetime
 import logging
+from moviepy.editor import *
 
 # Set up logging
 logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
-def create_video_from_frames(frame_folder, output_folder, fps):
-    images = [img for img in os.listdir(frame_folder) if img.endswith(".jpg")]
-    # Updated sorting: extracting the number after 'upscaled_generation_'
-    images.sort(key=lambda x: int(x.split('generation_')[1].split('.jpg')[0]))
+def add_audio_to_video(video_path, audio_path, output_path):
+    video_clip = VideoFileClip(video_path)
 
+    # Check if audio file exists and its duration
+    if os.path.exists(audio_path):
+        audio_clip = AudioFileClip(audio_path)
+        if audio_clip.duration >= video_clip.duration:
+            final_clip = video_clip.set_audio(audio_clip)
+            final_clip.write_videofile(output_path, codec='libx264', audio_codec='aac')
+            logging.info(f"Video with audio creation complete: {output_path}")
+            return
+        else:
+            logging.warning("Audio file is shorter than the video. Proceeding without audio.")
+
+    # If audio file does not exist or is not suitable, save video without audio
+    video_clip.write_videofile(output_path, codec='libx264')
+    logging.info(f"Video without audio created: {output_path}")
+
+def create_video_from_frames(frame_folder, output_folder, audio_folder, fps):
+    images = [img for img in os.listdir(frame_folder) if img.endswith(".jpg")]
+    images.sort(key=lambda x: int(x.split('generation_')[1].split('.jpg')[0]))
 
     if not images:
         logging.warning("No images found in the folder.")
         return
-
+    
     # Determine the width and height from the first image
     frame = cv2.imread(os.path.join(frame_folder, images[0]))
     height, width, layers = frame.shape
@@ -38,9 +55,15 @@ def create_video_from_frames(frame_folder, output_folder, fps):
 
     logging.info(f"Video creation complete: {output_video_path}")
 
+    # Add audio to the video or create video without audio
+    audio_path = os.path.join(audio_folder, 'audio.mp3')
+    output_video_with_audio = output_video_path.replace('.mp4', '_final.mp4')
+    add_audio_to_video(output_video_path, audio_path, output_video_with_audio)
+
 # Specify the directories
 frame_folder = 'assets\\upscale'
 output_folder = 'output'
+audio_folder = 'assets\\audio'
 
 # Ensure output folder exists
 os.makedirs(output_folder, exist_ok=True)

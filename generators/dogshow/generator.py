@@ -66,7 +66,7 @@ api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
 
 # Directories
 frames_dir = "assets\\frames"
-generation_dir = "assets\\generations"
+generation_dir = "assets\\lowscale"
 reels_dir = "assets\\reels"
 os.makedirs(generation_dir, exist_ok=True)
 os.makedirs(reels_dir, exist_ok=True)
@@ -103,6 +103,26 @@ for index, frame_file in enumerate(frame_files):
         denoising_strength = CONTINUING_DENOISING_STRENGTH
         cfg_scale = CONTINUING_CFG_SCALE
 
+
+    control_net_args = [{
+        "input_image": None,
+        "resize_mode": "Just Resize",
+        "module": "depth_midas",
+        "model": "control_v11f1p_sd15_depth_fp16 [4b72d323]",
+        "weight": 0.8,
+        "pixel_perfect": True,
+        "control_mode": "ControlNet is more important"
+    }, {
+        "input_image": None,
+        "resize_mode": "Just Resize",
+        "module": "none",
+        "model": "temporalnetv3 [b146ac48]",
+        "weight": 0.2,
+        "pixel_perfect": True,
+        "control_mode": "ControlNet is more important"
+    }]
+
+
     # Define the JSON payload
     json_payload = {
         "init_images": [init_image],
@@ -117,13 +137,15 @@ for index, frame_file in enumerate(frame_files):
         "prompt": prompt,
         "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw, humans, human hands",
         "batch_size": 1,
-        "seed": -1,
+        "seed": 1337,
         "sampler_name": "DPM++ 2M Karras",
         "steps": 20,
         "cfg_scale": cfg_scale,
         "width": INITIAL_WIDTH if index == 0 else SUBSEQUENT_WIDTH,
         "height": HEIGHT,
-        "alwayson_scripts": {}
+        "alwayson_scripts": {
+        "ControlNet": {"args": control_net_args}
+        }
     }
 
   # Call the API
