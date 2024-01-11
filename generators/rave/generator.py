@@ -123,9 +123,17 @@ for index, frame_file in enumerate(frame_files):
     }, {
         "input_image": None,
         "resize_mode": "Just Resize",
+        "module": "tile_colorfix+sharp",
+        "model": "control_v11f1e_sd15_tile_fp16 [3b860298]",
+        "weight": 0.45,
+        "pixel_perfect": True,
+        "control_mode": "Balanced"
+    }, {
+        "input_image": None,
+        "resize_mode": "Just Resize",
         "module": "none",
         "model": "temporalnetv3 [b146ac48]",
-        "weight": 0.2,
+        "weight": 0.35,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
     }]

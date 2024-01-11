@@ -1,7 +1,8 @@
 import requests
 import os
+import random
 
-def send_pushover_notification(message):
+def send_pushover_notification(message, directory_path):
     pushover_token = os.environ.get('PUSHOVER_API')
     pushover_user = os.environ.get('PUSHOVER_USER')
 
@@ -9,11 +10,13 @@ def send_pushover_notification(message):
         print("Pushover API token or user key not found in environment variables.")
         return
 
-    image_path = "assets/upscale/generation_0000.jpg"
-
-    # Check if the image file exists
-    if not os.path.isfile(image_path):
-        print("Image file not found.")
+    # List all files in the directory and choose one randomly
+    try:
+        files = os.listdir(directory_path)
+        image_filename = random.choice([f for f in files if os.path.isfile(os.path.join(directory_path, f))])
+        image_path = os.path.join(directory_path, image_filename)
+    except Exception as e:
+        print(f"Error selecting image: {e}")
         return
 
     # Prepare the data and files payload for the request
@@ -23,7 +26,7 @@ def send_pushover_notification(message):
         "message": message
     }
     files = {
-        "attachment": ("generation_0000.jpg", open(image_path, "rb"), "image/png")
+        "attachment": (image_filename, open(image_path, "rb"), "image/jpeg")
     }
 
     # Send the request
@@ -37,4 +40,4 @@ def send_pushover_notification(message):
             files['attachment'][1].close()
 
 # Example usage
-send_pushover_notification("Rave generation process completed.")
+send_pushover_notification("Piano generation process completed.", "assets/init/")

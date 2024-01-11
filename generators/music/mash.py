@@ -7,7 +7,7 @@ import shutil
 from moviepy.editor import VideoFileClip, concatenate_videoclips, TextClip, CompositeVideoClip
 
 # Constants for easy adjustments
-TXT_FONTSIZE = 60
+TXT_FONTSIZE = 80
 TXT_COLOR = 'white'
 TXT_OUTLINE_COLOR = 'black'
 STROKE_COLOR = 'black'

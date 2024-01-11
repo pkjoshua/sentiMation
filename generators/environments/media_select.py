@@ -5,7 +5,8 @@ import base64
 import os
 import random
 import cv2
-import shutil  # Import shutil for file operations
+import shutil 
+from moviepy.editor import *
 
 # Set up logging
 logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
@@ -17,39 +18,24 @@ def read_prompts_from_file(file_path):
 
 def select_random_video(video_dir):
     videos = [os.path.join(video_dir, f) for f in os.listdir(video_dir) if os.path.isfile(os.path.join(video_dir, f))]
-    selected_video = random.choice(videos)
+    return random.choice(videos)
 
-    cap = cv2.VideoCapture(selected_video)
-    if cap.isOpened():
-        width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        orientation = "horizontal" if width > height else "vertical"
-        cap.release()
+def extract_audio_from_video(video_path, output_dir):
+    video = VideoFileClip(video_path)
+    if video.audio:  # Check if the video has an audio track
+        audio_output_path = os.path.join(output_dir, 'audio.mp3')
+        video.audio.write_audiofile(audio_output_path)
     else:
-        logging.warning(f"Unable to open video: {selected_video}")
-        return None, None
+        logging.warning(f"No audio found in the video: {video_path}")
 
-    return selected_video, orientation
-
-
-def split_video_into_frames(video_path, frames_dir, orientation):
+def split_video_into_frames(video_path, frames_dir):
     vidcap = cv2.VideoCapture(video_path)
     success, image = vidcap.read()
     count = 0
-
     while success:
-        if orientation == "horizontal":
-            # Option 1: Rotate the image
-            image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
-
-            # Option 2: Crop the image to make it vertical
-            # width, height = image.shape[1], image.shape[0]
-            # startx = width // 4
-            # endx = startx + height
-            # image = image[:, startx:endx]
-
+        # Save frame with zero-padded filename
         frame_filename = f"frame_{count:04d}.png"
-        cv2.imwrite(os.path.join(frames_dir, frame_filename), image)
+        cv2.imwrite(os.path.join(frames_dir, frame_filename), image)      
         success, image = vidcap.read()
         count += 1
 
@@ -70,17 +56,21 @@ video_dir = "assets\\vids"
 frames_dir = "assets\\frames"
 prompt_dir = "assets\\prompts"
 used_dir = "assets\\used"  # Directory for used videos
+audio_dir = "assets\\audio"
 
 # Ensure directories exist
 os.makedirs(frames_dir, exist_ok=True)
+os.makedirs(audio_dir, exist_ok=True)
 
 # Select and process video
-selected_video, orientation = select_random_video(video_dir)
-if selected_video:
-    split_video_into_frames(selected_video, frames_dir, orientation)
-    move_video_to_used(selected_video, used_dir)
-else:
-    logging.error("No suitable video found for processing.")
+selected_video = select_random_video(video_dir)
+split_video_into_frames(selected_video, frames_dir)
+
+# Extract and save audio from the video
+extract_audio_from_video(selected_video, audio_dir)
+
+# Move the selected video to the 'used' directory
+move_video_to_used(selected_video, used_dir)
 
 # Select and save prompt
 select_random_prompt(prompt_dir)

@@ -10,20 +10,20 @@ logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s 
 def add_audio_to_video(video_path, audio_path, output_path):
     video_clip = VideoFileClip(video_path)
 
-    # Check if audio file exists and its duration
     if os.path.exists(audio_path):
         audio_clip = AudioFileClip(audio_path)
         if audio_clip.duration >= video_clip.duration:
             final_clip = video_clip.set_audio(audio_clip)
-            final_clip.write_videofile(output_path, codec='libx264', audio_codec='aac')
-            logging.info(f"Video with audio creation complete: {output_path}")
-            return
         else:
             logging.warning("Audio file is shorter than the video. Proceeding without audio.")
+            final_clip = video_clip
+    else:
+        logging.info("Audio file does not exist. Creating video without audio.")
+        final_clip = video_clip
 
-    # If audio file does not exist or is not suitable, save video without audio
-    video_clip.write_videofile(output_path, codec='libx264')
-    logging.info(f"Video without audio created: {output_path}")
+    final_clip.write_videofile(output_path, codec='libx264', audio_codec='aac')
+    final_clip.close()
+    logging.info(f"Final video creation complete: {output_path}")
 
 def create_video_from_frames(frame_folder, output_folder, audio_folder, fps):
     images = [img for img in os.listdir(frame_folder) if img.endswith(".jpg")]
@@ -69,6 +69,6 @@ audio_folder = 'assets\\audio'
 os.makedirs(output_folder, exist_ok=True)
 
 # Create the video
-create_video_from_frames(frame_folder, output_folder, fps=30)
+create_video_from_frames(frame_folder, output_folder, audio_folder, fps=30)
 
 logging.info("Video creation from upscaled frames is complete.")

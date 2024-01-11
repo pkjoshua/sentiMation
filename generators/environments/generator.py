@@ -117,7 +117,7 @@ for index, frame_file in enumerate(frame_files):
         "resize_mode": "Just Resize",
         "module": "tile_colorfix+sharp",
         "model": "control_v11f1e_sd15_tile_fp16 [3b860298]",
-        "weight": 0.2,
+        "weight": 0.3,
         "pixel_perfect": True,
         "control_mode": "Balanced"
     }, {
