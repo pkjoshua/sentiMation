@@ -4,7 +4,7 @@ import subprocess
 app = Flask(__name__)
 
 # Tasks for green buttons
-green_tasks = ["piano_generator", "pokemon_generator", "dogshow_generator", "environments_generator"]
+green_tasks = ["music_generator", "pokemon_generator", "dogshow_generator", "environments_generator"]
 
 # Tasks for blue buttons
 blue_tasks = ["mirror_to_post","sleep"]

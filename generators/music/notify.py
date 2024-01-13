@@ -40,4 +40,4 @@ def send_pushover_notification(message, directory_path):
             files['attachment'][1].close()
 
 # Example usage
-send_pushover_notification("Piano generation process completed.", "assets/init/")
+send_pushover_notification("Quotes are music generation process completed.", "assets/init/")

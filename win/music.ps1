@@ -1,6 +1,6 @@
 # Define the task name and task action
-$taskName = "rave_Generator"
-$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\rave\call.py' -WorkingDirectory 'D:\sentiMation\generators\rave'
+$taskName = "Music_Generator"
+$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\music\call.py' -WorkingDirectory 'D:\sentiMation\generators\music'
 
 # Check if the task already exists
 $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
@@ -8,16 +8,11 @@ $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
 # If task doesn't exist, create it
 if (-not $taskExists) {
     Write-Host "Task does not exist. Creating new task."
-
-    # Create two triggers, one for each schedule
-    $saturdayTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Saturday -At 6am
-    $fridayTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday -At 12pm
-
+    $taskTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday,Monday,Wednesday,Friday -At 9:30am
     $taskSettings = New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
     $principal = New-ScheduledTaskPrincipal -UserId "PALADIN1\josh" -LogonType ServiceAccount -RunLevel Highest
 
-    # Register the task with both triggers
-    Register-ScheduledTask -Action $taskAction -Principal $principal -Trigger $saturdayTrigger, $fridayTrigger -TaskName $taskName -Settings $taskSettings
+    Register-ScheduledTask -Action $taskAction -Principal $principal -Trigger $taskTrigger -TaskName $taskName -Settings $taskSettings
     Write-Host "Task created."
 } else {
     # If task exists, toggle enable/disable
