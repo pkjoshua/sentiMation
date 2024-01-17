@@ -21,12 +21,12 @@ def select_random_video(video_dir):
     return random.choice(videos)
 
 def extract_audio_from_video(video_path, output_dir):
-    video = VideoFileClip(video_path)
-    if video.audio:  # Check if the video has an audio track
-        audio_output_path = os.path.join(output_dir, 'audio.mp3')
-        video.audio.write_audiofile(audio_output_path)
-    else:
-        logging.warning(f"No audio found in the video: {video_path}")
+    with VideoFileClip(video_path) as video:
+        if video.audio:  # Check if the video has an audio track
+            audio_output_path = os.path.join(output_dir, 'audio.mp3')
+            video.audio.write_audiofile(audio_output_path)
+        else:
+            logging.warning(f"No audio found in the video: {video_path}")
 
 def split_video_into_frames(video_path, frames_dir):
     vidcap = cv2.VideoCapture(video_path)
@@ -40,9 +40,21 @@ def split_video_into_frames(video_path, frames_dir):
         count += 1
 
 def move_video_to_used(video_path, used_dir):
+    video_name = os.path.basename(video_path)
+    used_video_path = os.path.join(used_dir, video_name)
+
+    # Create 'used' directory if it doesn't exist
     if not os.path.exists(used_dir):
         os.makedirs(used_dir, exist_ok=True)
-    shutil.move(video_path, used_dir)
+
+    # If the video already exists in 'used', delete it from 'vids'
+    if os.path.exists(used_video_path):
+        os.remove(video_path)
+        logging.info(f"Deleted existing video from 'vids': {video_path}")
+    else:
+        shutil.move(video_path, used_dir)
+        logging.info(f"Moved video to 'used': {video_path}")
+
 
 def select_random_prompt(prompt_dir):
     prompt_files = [os.path.join(prompt_dir, f) for f in os.listdir(prompt_dir) if os.path.isfile(os.path.join(prompt_dir, f))]
@@ -69,8 +81,10 @@ split_video_into_frames(selected_video, frames_dir)
 # Extract and save audio from the video
 extract_audio_from_video(selected_video, audio_dir)
 
+# Select and save prompt
+select_random_prompt(prompt_dir)
+
 # Move the selected video to the 'used' directory
 move_video_to_used(selected_video, used_dir)
 
-# Select and save prompt
-select_random_prompt(prompt_dir)
+
