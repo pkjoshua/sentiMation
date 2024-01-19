@@ -7,10 +7,10 @@ import io
 from PIL import Image
 
 # Constants
-INITIAL_DENOISING_STRENGTH = 0.8
+INITIAL_DENOISING_STRENGTH = 0.7
 INITIAL_CFG_SCALE = 8
 CONTINUING_DENOISING_STRENGTH = 0.65
-CONTINUING_CFG_SCALE = 5
+CONTINUING_CFG_SCALE = 8
 INITIAL_WIDTH = 360
 SECOND_WIDTH = 2 * INITIAL_WIDTH
 THIRD_WIDTH = 3 * INITIAL_WIDTH
@@ -141,13 +141,12 @@ for index, frame_file in enumerate(frame_files):
         cfg_scale = CONTINUING_CFG_SCALE
         width = THIRD_WIDTH
 
-
     control_net_args = [{
         "input_image": None,
         "resize_mode": "Just Resize",
-        "module": "depth_midas",
-        "model": "control_v11f1p_sd15_depth_fp16 [4b72d323]",
-        "weight": 0.8,
+        "module": "normal_bae",
+        "model": "control_v11p_sd15_normalbae_fp16 [592a19d8]",
+        "weight": 0.6,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
     }, {
@@ -155,7 +154,7 @@ for index, frame_file in enumerate(frame_files):
         "resize_mode": "Just Resize",
         "module": "none",
         "model": "temporalnetv3 [b146ac48]",
-        "weight": 0.4,
+        "weight": 0.2,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
     }]
