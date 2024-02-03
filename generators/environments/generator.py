@@ -9,7 +9,7 @@ from PIL import Image
 # Constants
 INITIAL_DENOISING_STRENGTH = 0.8
 INITIAL_CFG_SCALE = 8
-CONTINUING_DENOISING_STRENGTH = 0.65
+CONTINUING_DENOISING_STRENGTH = 0.6
 CONTINUING_CFG_SCALE = 5
 INITIAL_WIDTH = 360
 SECOND_WIDTH = 2 * INITIAL_WIDTH
@@ -89,6 +89,7 @@ previous_generation_path = None
 prompt = read_prompt("chosen_prompt.txt")
 historical_generation_path = None
 previous_generation_path = None
+controlnet_image_base64 = None
 
 for index, frame_file in enumerate(frame_files):
     original_frame_path = os.path.join(frames_dir, frame_file)
@@ -114,6 +115,8 @@ for index, frame_file in enumerate(frame_files):
         Image.open(combined_image_path).save(reel_path)
         logging.info(f"Reel {index:04d} saved as {reel_path}.")
 
+        controlnet_image_base64 = encode_image_to_base64(previous_generation_path)
+
         # Create and encode mask
         mask_path = create_mask()
         mask_image = encode_image_to_base64(mask_path)
@@ -131,6 +134,8 @@ for index, frame_file in enumerate(frame_files):
         reel_path = os.path.join(reels_dir, f"reel_{index:04d}.jpg")
         Image.open(combined_image_path).save(reel_path)
         logging.info(f"Reel {index:04d} saved as {reel_path}.")
+
+        controlnet_image_base64 = encode_image_to_base64(previous_generation_path)
 
         # Create and encode mask
         mask_path = create_mask(for_three_images=True)
@@ -150,6 +155,14 @@ for index, frame_file in enumerate(frame_files):
         "weight": 0.8,
         "pixel_perfect": True,
         "control_mode": "ControlNet is more important"
+    }, {
+        "input_image": controlnet_image_base64,
+        "resize_mode": "Crop and Resize",
+        "module": "reference_only",
+        "model": "",
+        "weight": 0.75,
+        "pixel_perfect": True,
+        "control_mode": "Balanced"
     }, {
         "input_image": None,
         "resize_mode": "Just Resize",
