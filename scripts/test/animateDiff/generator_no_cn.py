@@ -1,32 +1,28 @@
 import requests
-import base64
 import json
 import logging
 import os
+import base64
 
 logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 # Define the API URL
-api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
-
-# Function to encode image to base64
-def encode_image_to_base64(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode('utf-8')
+api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
 
 controlnet_dir = "assets\\init"
 generation_dir = "assets\\generations"
 os.makedirs(generation_dir, exist_ok=True)
 
-# Encode all images in the directory to base64 and store them in a list
+# Get full file paths for all images in the directory
 controlnet_images = sorted(os.listdir(controlnet_dir))
-encoded_images = [encode_image_to_base64(os.path.join(controlnet_dir, img)) for img in controlnet_images]
+image_file_paths = [os.path.join(controlnet_dir, img) for img in controlnet_images]
 
 control_net_args = [{
+    "batch_image_dir": "D:\\sentiMation\\generators\\dogshow\\assets\\test",
     "resize_mode": "Just Resize",
     "module": "normal_bae",
     "model": "control_v11f1p_sd15_depth_fp16 [4b72d323]",
-    "weight": 1,
+    "weight": 0.85,
     "pixel_perfect": True,
     "control_mode": "Balanced"
 }]
@@ -43,13 +39,14 @@ animate_diff_args = {
     "stride": 1,
     "overlap": -1,
     "interp": "NO",
-    "interp_x": 10
+    "interp_x": 10,
+    "latent_power": 0.2,
+    "latent_scale": 92
 }
 
 json_payload = {
-    "init_images": encoded_images,
-    "denoising_strength": 0.8,
-    "prompt": " <lora:Lora_MC:1>  ARMOR, best quality, detailed, high contrast",
+    "prompt": "  ARMOR, best quality, detailed, high contrast",
+    "batch_size": 60,
     "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
     "batch_size": 1,
     "sampler_name": "DDIM",
@@ -58,8 +55,7 @@ json_payload = {
     "width": 360,
     "height": 640,
     "alwayson_scripts": {
-        "AnimateDiff": {"args": [animate_diff_args]},
-        "ControlNet": {"args": control_net_args}
+        "AnimateDiff": {"args": [animate_diff_args]}
     }
 }
 

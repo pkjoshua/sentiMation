@@ -11,6 +11,9 @@ api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
 
 controlnet_dir = "assets\\init"
 generation_dir = "assets\\generations"
+batch_dir = "D\\sentiMation\generators\dogshow\assets\test"
+vid_file = "/mnt/d/test.mp4"
+
 os.makedirs(generation_dir, exist_ok=True)
 
 # Get full file paths for all images in the directory
@@ -18,35 +21,34 @@ controlnet_images = sorted(os.listdir(controlnet_dir))
 image_file_paths = [os.path.join(controlnet_dir, img) for img in controlnet_images]
 
 control_net_args = [{
-    "input_image": null,
     "resize_mode": "Just Resize",
     "module": "normal_bae",
-    "model": "control_v11f1p_sd15_depth_fp16 [4b72d323]",
+    "model": "control_v11p_sd15_normalbae_fp16 [592a19d8]",
     "weight": 0.85,
     "pixel_perfect": True,
-    "control_mode": "ControlNet is more important"
+    "control_mode": "Balanced"
 }]
 
 animate_diff_args = {
     "model": "mm_sd_v15_v2.ckpt",
     "format": ['MP4'],
     "enable": True,
-    "video_length": 60,
+    "video_length": 0,
     "fps": 30,
     "loop_number": 0,
     "closed_loop": "N",
     "batch_size": 16,
     "stride": 1,
-    "video_source": "D:\\sentiMation\\generators\\dogshow\\assets\used\\test.mp4",
+    "video_source": "/mnt/d/test.mp4",
     "overlap": -1,
     "interp": "NO",
     "interp_x": 10,
     "latent_power": 0.2,
-    "latent_scale": 92,
+    "latent_scale": 92
 }
 
 json_payload = {
-    "prompt": " <lora:Lora_MC:1>  ARMOR, best quality, detailed, high contrast",
+    "prompt": "  ARMOR, best quality, detailed, high contrast",
     "batch_size": 60,
     "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
     "batch_size": 1,
