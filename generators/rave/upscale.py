@@ -3,9 +3,21 @@ import requests
 import base64
 import json
 import logging
+from moviepy.editor import VideoFileClip
+from PIL import Image
+
+script_dir = os.path.dirname(os.path.abspath(__file__))  # Path to the script's directory
 
 # Set up logging
-logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+logging.basicConfig(filename=os.path.join(script_dir, 'gen.log'), level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+
+def extract_frames_from_video(video_path, frames_dir):
+    with VideoFileClip(video_path) as video:
+        # Remove the FPS-based conditional, save every frame
+        for i, frame in enumerate(video.iter_frames()):
+            frame_path = os.path.join(frames_dir, f"frame_{i:04d}.png")  # Ensure frame numbering is zero-padded
+            frame_image = Image.fromarray(frame)
+            frame_image.save(frame_path)
 
 def upscale_image(image_path, api_url, headers, json_payload_template):
     with open(image_path, "rb") as image_file:
@@ -32,15 +44,25 @@ def upscale_images(lowscale_dir, upscale_dir, api_url, headers, json_payload_tem
         image_path = os.path.join(lowscale_dir, image_file)
         upscaled_image = upscale_image(image_path, api_url, headers, json_payload_template)
         if upscaled_image:
-            output_path = os.path.join(upscale_dir, f"{image_file}")
+            output_path = os.path.join(upscale_dir, f"upscaled_{image_file}")
             with open(output_path, 'wb') as file:
                 file.write(upscaled_image)
+            logging.info(f"Upscaled image saved: {output_path}")
         else:
             logging.error(f"Failed to upscale image: {image_file}")
 
 # API configuration
 api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
 headers = {"Content-Type": "application/json"}
+
+# Adjusted paths
+
+generation_dir = os.path.join(script_dir, "assets/generations") 
+lowscale_dir = os.path.join(script_dir, "assets/lowscale")
+upscale_dir = os.path.join(script_dir, "assets/upscale")  # Directory for used videos
+
+os.makedirs(lowscale_dir, exist_ok=True)
+os.makedirs(upscale_dir, exist_ok=True)
 
 # Define the JSON payload with upscaling script args
 json_payload_template = {
@@ -58,8 +80,8 @@ json_payload_template = {
     "script_name": "ultimate sd upscale",
     "script_args": [
         None,           # _ (not used)
-        360,            # tile_width
-        640,            # tile_height
+        720,            # tile_width
+        1280,            # tile_height
         8,              # mask_blur
         32,             # padding
         64,             # seams_fix_width
@@ -78,12 +100,14 @@ json_payload_template = {
     ]
 }
 
-# Directories
-lowscale_dir = "assets\\lowscale"
-upscale_dir = "assets\\upscale"
-os.makedirs(lowscale_dir, exist_ok=True)
-os.makedirs(upscale_dir, exist_ok=True)
-
-# Upscale images
-upscale_images(lowscale_dir, upscale_dir, api_url, headers, json_payload_template)
+# Assuming there is only one video in the generations directory
+video_files = [f for f in os.listdir(generation_dir) if f.endswith('.mp4')]
+if video_files:
+    video_path = os.path.join(generation_dir, video_files[0])
+    # Extract frames
+    extract_frames_from_video(video_path, lowscale_dir)
+    # Upscale images
+    upscale_images(lowscale_dir, upscale_dir, api_url, headers, json_payload_template)
+else:
+    logging.error("No video file found in the generations directory.")
 

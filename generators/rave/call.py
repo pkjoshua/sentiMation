@@ -3,22 +3,25 @@ import logging
 import time
 import os
 import shutil
-import socket
 
-# Set up logging
-logging.basicConfig(filename='gen.log', level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+# Determine the directory of the current script to make paths relative to it
+script_dir = os.path.dirname(os.path.realpath(__file__))
 
-# Additional logger for gentime.log
+# Set up logging with paths relative to the script directory
+logging.basicConfig(filename=os.path.join(script_dir, 'gen.log'), level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+
+# Additional logger for gentime.log with path relative to the script directory
 gentime_logger = logging.getLogger('gentime_logger')
 gentime_logger.setLevel(logging.INFO)
-gentime_handler = logging.FileHandler('gentime.log')
+gentime_handler = logging.FileHandler(os.path.join(script_dir, 'gentime.log'))
 gentime_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
 gentime_logger.addHandler(gentime_handler)
 
 # Function to clear the contents of a directory
 def clear_directory(directory):
-    for item in os.listdir(directory):
-        file_path = os.path.join(directory, item)
+    full_dir = os.path.join(script_dir, directory)  # Adjust directory path
+    for item in os.listdir(full_dir):
+        file_path = os.path.join(full_dir, item)
         try:
             if os.path.isfile(file_path) or os.path.islink(file_path):
                 os.unlink(file_path)
@@ -29,7 +32,8 @@ def clear_directory(directory):
 
 # Function to run a script and log its output
 def run_script(script_name):
-    result = subprocess.run(['python', script_name], capture_output=True, text=True)
+    script_path = os.path.join(script_dir, script_name)  # Adjust script path
+    result = subprocess.run(['python3', script_path], capture_output=True, text=True)
     if result.returncode == 0:
         logging.info(f"{script_name} finished successfully.")
         logging.info("Output: %s", result.stdout)
@@ -45,29 +49,15 @@ def run_scripts_sequence():
     run_script('generator.py')
     run_script('upscale.py')
     run_script('mash.py')
-    run_script('notify.py')
     end_time = time.time()  # End timing
     total_time = end_time - start_time
     gentime_logger.info(f"Total time for sequence: {total_time:.2f} seconds")
 
-# Main execution
-if __name__ == "__main__":
-    # Check if server is running, and start if not
-    if not is_server_running():
-        logging.info("Server is not running. Starting server...")
-        start_server()
-        if not is_server_running():
-            logging.error("Failed to start server. Exiting.")
-            exit(1)
-        else:
-            logging.info("Server started successfully.")
-
 # Clear contents of specific directories before running scripts
-directories_to_clear = ['assets/lowscale', 'assets/frames', 'assets/upscale','assets/reels','assets/audio']
+directories_to_clear = ['assets/lowscale', 'assets/upscale','assets/generations','assets/audio']
 for directory in directories_to_clear:
     clear_directory(directory)
 
 run_scripts_sequence()
 
 print("Script sequence complete.")
-

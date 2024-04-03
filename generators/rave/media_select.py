@@ -1,15 +1,12 @@
-import requests
-import json
 import logging
-import base64
 import os
 import random
-import cv2
-import shutil 
+import shutil
 from moviepy.editor import *
 
-# Set up logging
-logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+logging.basicConfig(filename=os.path.join(script_dir, 'gen.log'), level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 
 def read_prompts_from_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -28,17 +25,6 @@ def extract_audio_from_video(video_path, output_dir):
         else:
             logging.warning(f"No audio found in the video: {video_path}")
 
-def split_video_into_frames(video_path, frames_dir):
-    vidcap = cv2.VideoCapture(video_path)
-    success, image = vidcap.read()
-    count = 0
-    while success:
-        # Save frame with zero-padded filename
-        frame_filename = f"frame_{count:04d}.png"
-        cv2.imwrite(os.path.join(frames_dir, frame_filename), image)      
-        success, image = vidcap.read()
-        count += 1
-
 def move_video_to_used(video_path, used_dir):
     video_name = os.path.basename(video_path)
     used_video_path = os.path.join(used_dir, video_name)
@@ -55,28 +41,30 @@ def move_video_to_used(video_path, used_dir):
         shutil.move(video_path, used_dir)
         logging.info(f"Moved video to 'used': {video_path}")
 
-
 def select_random_prompt(prompt_dir):
     prompt_files = [os.path.join(prompt_dir, f) for f in os.listdir(prompt_dir) if os.path.isfile(os.path.join(prompt_dir, f))]
     chosen_prompt_file = random.choice(prompt_files)
     prompts = read_prompts_from_file(chosen_prompt_file)
-    with open("chosen_prompt.txt", 'w', encoding='utf-8') as file:
-        file.write(random.choice(prompts))
+    chosen_prompt = random.choice(prompts)
+    chosen_prompt_path = os.path.join(script_dir, "chosen_prompt.txt")  # Corrected path construction
+    with open(chosen_prompt_path, 'w', encoding='utf-8') as file:
+        file.write(chosen_prompt)
+    return chosen_prompt
 
-# Directories
-video_dir = "assets\\vids"
-frames_dir = "assets\\frames"
-prompt_dir = "assets\\prompts"
-used_dir = "assets\\used"  # Directory for used videos
-audio_dir = "assets\\audio"
+# Adjusted paths
+script_dir = os.path.dirname(os.path.abspath(__file__))  # Path to the script's directory
+video_dir = os.path.join(script_dir, "assets/vids")
+prompt_dir = os.path.join(script_dir, "assets/prompts")
+used_dir = os.path.join(script_dir, "assets/used")  # Directory for used videos
+audio_dir = os.path.join(script_dir, "assets/audio")
 
-# Ensure directories exist
-os.makedirs(frames_dir, exist_ok=True)
+# Ensure the audio directory exists
 os.makedirs(audio_dir, exist_ok=True)
 
 # Select and process video
 selected_video = select_random_video(video_dir)
-split_video_into_frames(selected_video, frames_dir)
+selected_video_path = os.path.join(script_dir, "chosen_video.mp4")
+shutil.copy(selected_video, selected_video_path)
 
 # Extract and save audio from the video
 extract_audio_from_video(selected_video, audio_dir)
@@ -86,5 +74,3 @@ select_random_prompt(prompt_dir)
 
 # Move the selected video to the 'used' directory
 move_video_to_used(selected_video, used_dir)
-
-

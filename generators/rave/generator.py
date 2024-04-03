@@ -1,18 +1,34 @@
 import requests
-import json
 import logging
 import os
 import base64
 
-logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+logging.basicConfig(filename=os.path.join(script_dir, 'gen.log'), level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 
 # Define the API URL
 api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
 
-generation_dir = "assets/generations"
-vid_file = "/mnt/d/test.mp4"
+# Updated paths to directly use selected_video.mp4 and selected_prompt.txt
+generation_dir = os.path.join(script_dir, "assets/generations")
+vid_file = os.path.join(script_dir, "chosen_video.mp4")
+prompt_file_path = os.path.join(script_dir, "chosen_prompt.txt")
 
 os.makedirs(generation_dir, exist_ok=True)
+
+# Check if the selected video file exists
+if not os.path.exists(vid_file):
+    logging.error("chosen_video.mp4 not found.")
+    exit(1)
+
+# Load the selected prompt
+if not os.path.exists(prompt_file_path):
+    logging.error("chosen_prompt.txt not found.")
+    exit(1)
+
+with open(prompt_file_path, 'r') as file:
+    prompt = file.read().strip()
 
 control_net_args = [{
     "resize_mode": "Just Resize",
@@ -31,21 +47,20 @@ animate_diff_args = {
     "fps": 30,
     "loop_number": 0,
     "closed_loop": "N",
-    "batch_size": 16,
+    "batch_size": 10,
     "stride": 1,
     "video_source": vid_file,
     "overlap": -1,
     "interp": "NO",
     "interp_x": 10,
     "latent_power": 0.2,
-    "latent_scale": 92
+    "latent_scale": 32
 }
 
 json_payload = {
-    "prompt": "  ARMOR, best quality, detailed, high contrast",
-    "batch_size": 60,
-    "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
+    "prompt": prompt,
     "batch_size": 1,
+    "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
     "sampler_name": "DDIM",
     "steps": 20,
     "cfg_scale": 10,
