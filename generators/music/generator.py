@@ -31,7 +31,7 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
     prompt_text = prompt.strip()
 
     animate_diff_args = {
-        "model": "v3_sd15_mm.ckpt",
+        "model": "animatediffMotion_v15V2.ckpt",
         "format": ['MP4'],
         "enable": True,
         "video_length": 150,

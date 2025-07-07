@@ -31,10 +31,10 @@ with open(prompt_file_path, 'r') as file:
     prompt = file.read().strip()
 
 control_net_args = [{
-    "resize_mode": "Just Resize",
-    "module": "depth_midas",
-    "model": "control_v11f1p_sd15_depth_fp16 [592a19d8]",
-    "weight": 0.85,
+    "resize_mode": "Crop and Resize",   
+    "module": "normal_bae",
+    "model": "control_v11p_sd15_normalbae_fp16 [592a19d8]",
+    "weight": 0.75,
     "pixel_perfect": True,
     "control_mode": "Balanced"
 }]
@@ -47,8 +47,8 @@ animate_diff_args = {
     "fps": 30,
     "loop_number": 0,
     "closed_loop": "N",
-    "batch_size": 10,
-    "stride": 2,
+    "batch_size": 32,
+    "stride": 3,
     "video_source": vid_file,
     "overlap": -1,
     "interp": "NO",
@@ -61,8 +61,8 @@ json_payload = {
     "prompt": prompt,
     "batch_size": 1,
     "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
-    "sampler_name": "DPM++ SDE Karras",
-    "steps": 20,
+    "sampler_name": "DDIM",
+    "steps": 12,
     "cfg_scale": 8,
     "width": 360,
     "height": 640,

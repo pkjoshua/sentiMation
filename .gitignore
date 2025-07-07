@@ -10,6 +10,7 @@ response_data.txt
 shrek_prompts.log
 
 chosen_prompt.txt
+*.env
 
 *.png
 

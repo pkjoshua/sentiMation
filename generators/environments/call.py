@@ -54,7 +54,7 @@ def run_scripts_sequence():
     gentime_logger.info(f"Total time for sequence: {total_time:.2f} seconds")
 
 # Clear contents of specific directories before running scripts
-directories_to_clear = ['assets/lowscale', 'assets/upscale','assets/generations','assets/audio']
+directories_to_clear = ['assets/lowscale', 'assets/upscale','assets/audio']
 for directory in directories_to_clear:
     clear_directory(directory)
 

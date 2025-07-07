@@ -10,8 +10,8 @@ if (-not $taskExists) {
     Write-Host "Task does not exist. Creating new task."
 
     # Create two triggers, one for each schedule
-    $saturdayTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Saturday -At 6am
-    $fridayTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday -At 12pm
+    $saturdayTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Saturday -At 8am
+    $fridayTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday -At 6am
 
     $taskSettings = New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
     $principal = New-ScheduledTaskPrincipal -UserId "PALADIN1\josh" -LogonType ServiceAccount -RunLevel Highest

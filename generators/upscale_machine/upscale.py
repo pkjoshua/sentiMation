@@ -1,24 +1,21 @@
-import cv2
 import os
 import requests
 import base64
 import json
 import logging
+import cv2
 import imageio  
 
-
-# Initialize logging
-logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+# Initialize logging with path relative to script directory
+script_dir = os.path.dirname(os.path.abspath(__file__))
+logging.basicConfig(filename=os.path.join(script_dir, "gen.log"), level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 def upscale_frame(frame_path, api_url, headers, json_payload_template):
     with open(frame_path, "rb") as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
-
     json_payload = json_payload_template.copy()
     json_payload["init_images"] = [encoded_image]
-
     response = requests.post(api_url, headers=headers, json=json_payload)
-    
     if response.status_code == 200:
         r = response.json()
         if 'images' in r and r['images']:
@@ -33,26 +30,22 @@ def extract_frames(video_path, output_dir):
     vidcap = cv2.VideoCapture(video_path)
     success, image = vidcap.read()
     count = 0
-
     while success:
         frame_path = os.path.join(output_dir, f"frame{count:04d}.png")
         cv2.imwrite(frame_path, image)     
         success, image = vidcap.read()
         count += 1
-    
     fps = vidcap.get(cv2.CAP_PROP_FPS)
-    return count, fps  # Return the total number of frames extracted and the fps
+    return count, fps
 
 def create_video_from_frames(frame_folder, output_video_path, fps):
     frame_files = sorted([os.path.join(frame_folder, file) for file in os.listdir(frame_folder) if file.endswith('.png')])
     if not frame_files:
         logging.error("No frames found in the folder.")
         return
-
     frame = cv2.imread(frame_files[0])
     height, width, layers = frame.shape
     size = (width, height)
-
     out = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, size)
     for frame_file in frame_files:
         frame = cv2.imread(frame_file)
@@ -60,13 +53,10 @@ def create_video_from_frames(frame_folder, output_video_path, fps):
     out.release()
 
 def process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_payload_template, upscale_vids_dir):
-    # Determine if input is a GIF
     is_gif = video_path.endswith('.gif')
-
-    # Handle GIF files
     if is_gif:
         reader = imageio.get_reader(video_path)
-        fps = 30  # Ensure consistent fps for output
+        fps = 30
         frame_count = 0
         for i, frame in enumerate(reader):
             frame_path = os.path.join(lowscale_dir, f"frame{frame_count:04d}.png")
@@ -74,18 +64,13 @@ def process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_
             frame_count += 1
     else:
         frame_count, fps = extract_frames(video_path, lowscale_dir)
-        fps = 30  # Override fps for consistency
-
-    # Upscale frames
     for i in range(frame_count):
         frame_path = os.path.join(lowscale_dir, f"frame{i:04d}.png")
         upscaled_image = upscale_frame(frame_path, api_url, headers, json_payload_template)
         if upscaled_image:
             with open(os.path.join(upscale_dir, f"upscaled_frame{i:04d}.png"), 'wb') as file:
                 file.write(upscaled_image)
-
-    # Adjusted to save in the upscale_vids folder
-    output_video_name = os.path.basename(video_path).split('.')[0] + '.mp4'
+    output_video_name = os.path.basename(video_path).split('.')[0] + '_upscaled.mp4'
     output_video_path = os.path.join(upscale_vids_dir, output_video_name)
     create_video_from_frames(upscale_dir, output_video_path, fps)
 
@@ -129,26 +114,22 @@ json_payload_template = {
     ]
 }
 
-# Directories
-vids_dir = "assets\\vids"
-lowscale_dir = "assets\\lowscale"
-upscale_dir = "assets\\upscale"
-upscale_vids = "assets\\upscale_vids"
+# Adjusted directories to use the script directory as base
+vids_dir = os.path.join(script_dir, "assets", "vids")
+lowscale_dir = os.path.join(script_dir, "assets", "lowscale")
+upscale_dir = os.path.join(script_dir, "assets", "upscale")
+upscale_vids_dir = os.path.join(script_dir, "assets", "upscale_vids")
 
 os.makedirs(lowscale_dir, exist_ok=True)
 os.makedirs(upscale_dir, exist_ok=True)
-os.makedirs(upscale_vids, exist_ok=True)
+os.makedirs(upscale_vids_dir, exist_ok=True)
 
-# Process each video and delete the original after processing
 for video_file in sorted(os.listdir(vids_dir)):
     video_path = os.path.join(vids_dir, video_file)
     if video_path.endswith('.mp4') or video_path.endswith('.gif'):
         logging.info(f"Processing video: {video_path}")
-        process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_payload_template, upscale_vids)
-        # Clear lowscale and upscale directories for next video
-        for folder in [lowscale_dir, upscale_dir]:
-            for file in os.listdir(folder):
-                os.unlink(os.path.join(folder, file))
-        # Remove the original video file
-        os.remove(video_path)
-        logging.info(f"Removed original video: {video_path}")
+        process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_payload_template, upscale_vids_dir) # This should be replaced with actual video processing loop/logic
+video_path = os.path.join(vids_dir, video_file)
+if video_path.endswith('.mp4') or video_path.endswith('.gif'):
+    logging.info(f"Processing video: {video_path}")
+    process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_payload_template, upscale_vids_dir)
