@@ -1,32 +1,29 @@
 # sentiMation
 
-sentiMation contains a set of generators that produce short videos using the Automatic1111 API. Each generator under the `generators` folder is tailored to a specific style of content. Windows PowerShell scripts are provided to schedule runs via Task Scheduler.
+sentiMation contains several generators that produce short videos using the Automatic1111 API. Each generator under `generators/` implements a particular style of content. The project now runs in a Docker container and exposes a small web UI for scheduling jobs using cron.
 
 ## Features
 
 - Python scripts for interacting with the Automatic1111 txt2img and img2img endpoints.
-- Optional notifications through Pushover using `PUSHOVER_API` and `PUSHOVER_USER` environment variables.
-- Example test utilities for experimenting with ControlNet and video generation.
-- Windows scripts in `scripts/win` to automate content creation.
+- Optional Pushover notifications using the `PUSHOVER_API` and `PUSHOVER_USER` environment variables.
+- Simple Flask web application to schedule generator jobs.
+- Docker container with cron so jobs run even when the UI is not open.
 
 ## Usage
 
-1. Clone the repository and install dependencies.
-2. Ensure the Automatic1111 API is running.
-3. Run a generator manually:
+1. Build and start the container:
+   ```bash
+   docker compose up --build
+   ```
+   Add `--gpus all` if running on a system with NVIDIA GPUs.
+2. Open `http://localhost:5000` to access the scheduler UI.
+3. Create a job by choosing a generator, entering a cron expression and optionally enabling Pushover notifications.
+4. Jobs are stored in `jobs.json` and executed by cron inside the container.
 
+Manual execution is still possible via:
 ```bash
-python generators/dogshow/call.py
+python job_runner.py <generator> [--notify]
 ```
-
-4. Set environment variables for notifications if desired:
-
-```bash
-PUSHOVER_API=<your api token>
-PUSHOVER_USER=<your user key>
-```
-
-5. On Windows, edit the `$repoPath` variable in any `.ps1` script to point to your local clone. These scripts can be scheduled via Task Scheduler to automate generation.
 
 ## Notes
 

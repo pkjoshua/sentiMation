@@ -6,8 +6,9 @@ import subprocess
 import time
 from tkinter import ttk
 import logging
-import os 
+import os
 import json
+import notifier
 import shutil
 import socket
 
@@ -181,3 +182,6 @@ start_button.pack()
 
 # Run the main loop
 window.mainloop()
+
+if os.getenv("NOTIFY_AFTER"):
+    notifier.send_pushover_notification("sketch2lifeui generator complete")

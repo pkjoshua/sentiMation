@@ -4,6 +4,7 @@ import time
 import os
 import socket
 import shutil
+import notifier
 
 # Set up logging
 logging.basicConfig(filename='gen.log', level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
@@ -60,3 +61,5 @@ def run_scripts_sequence():
 run_scripts_sequence()
 
 print("Script sequence complete.")
+if os.getenv("NOTIFY_AFTER"):
+    notifier.send_pushover_notification("music generator complete")

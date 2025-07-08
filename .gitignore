@@ -18,7 +18,7 @@ chosen_prompt.txt
 
 *.mp4
 
-*.txt
+!requirements.txt
 
 *.mp3
 
@@ -34,6 +34,6 @@ generators/pokemon/assets/sound/scrape_music.ps1
 
 *.MOV
 
-*.json
 
 *.xlsx
+__pycache__/

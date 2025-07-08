@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head><title>Add Job</title></head>
+  <body>
+    <h1>Add Job</h1>
+    <form method="post">
+      <label>Generator</label>
+      <select name="generator">
+        {% for g in generators %}
+        <option value="{{ g }}">{{ g }}</option>
+        {% endfor %}
+      </select><br/>
+      <label>Cron Schedule</label>
+      <input name="schedule" placeholder="*/5 * * * *"/><br/>
+      <label>Notify via Pushover</label>
+      <input type="checkbox" name="notify"/><br/>
+      <button type="submit">Save</button>
+    </form>
+    <a href="{{ url_for('index') }}">Back</a>
+  </body>
+</html>
