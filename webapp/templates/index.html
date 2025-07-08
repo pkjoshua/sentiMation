@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+  <head><title>Job Scheduler</title></head>
+  <body>
+    <h1>Scheduled Jobs</h1>
+    <table border="1">
+      <tr><th>Generator</th><th>Schedule</th><th>Notify</th></tr>
+      {% for job in jobs %}
+      <tr><td>{{ job.generator }}</td><td>{{ job.schedule }}</td><td>{{ job.notify }}</td></tr>
+      {% endfor %}
+    </table>
+    <a href="{{ url_for('add_job') }}">Add Job</a>
+  </body>
+</html>

@@ -3,6 +3,7 @@ import logging
 import time
 import os
 import shutil
+import notifier
 
 # Determine the directory of the current script to make paths relative to it
 script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -61,3 +62,5 @@ for directory in directories_to_clear:
 run_scripts_sequence()
 
 print("Script sequence complete.")
+if os.getenv("NOTIFY_AFTER"):
+    notifier.send_pushover_notification("environments generator complete")
