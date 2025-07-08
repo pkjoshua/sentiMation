@@ -1,6 +1,8 @@
 # Define the task name and task action
+$repoPath = "C:\path\to\sentiMation" # Update to your local path
+$userId = "$env:USERDOMAIN\$env:USERNAME"
 $taskName = "dogshow_Generator"
-$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\dogshow\call.py' -WorkingDirectory 'D:\sentiMation\generators\dogshow'
+$taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -c python $repoPath\generators\dogshow\call.py" -WorkingDirectory "$repoPath\generators\dogshow"
 
 # Check if the task already exists
 $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
@@ -10,7 +12,7 @@ if (-not $taskExists) {
     Write-Host "Task does not exist. Creating new task."
     $taskTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Tuesday,Thursday -At 6am
     $taskSettings = New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-    $principal = New-ScheduledTaskPrincipal -UserId "PALADIN1\josh" -LogonType ServiceAccount -RunLevel Highest
+    $principal = New-ScheduledTaskPrincipal -UserId $userId -LogonType ServiceAccount -RunLevel Highest
 
     Register-ScheduledTask -Action $taskAction -Principal $principal -Trigger $taskTrigger -TaskName $taskName -Settings $taskSettings
     Write-Host "Task created."

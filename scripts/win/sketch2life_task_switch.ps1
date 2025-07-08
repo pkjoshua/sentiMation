@@ -1,6 +1,8 @@
 # Define the task name and task action
+$repoPath = "C:\path\to\sentiMation" # Update to your local path
+$userId = "$env:USERDOMAIN\$env:USERNAME"
 $taskName = "SKetch2Life_Generator_One"
-$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\sketch2life\call_skl.py' -WorkingDirectory 'D:\sentiMation\generators\sketch2life'
+$taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -c python $repoPath\generators\sketch2life\call_skl.py" -WorkingDirectory "$repoPath\generators\sketch2life"
 
 # Check if the task already exists
 $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
@@ -10,7 +12,7 @@ if (-not $taskExists) {
     Write-Host "Task does not exist. Creating new task."
     $taskTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Wednesday -At 12pm
     $taskSettings = New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-    $principal = New-ScheduledTaskPrincipal -UserId "PALADIN1\josh" -LogonType ServiceAccount -RunLevel Highest
+    $principal = New-ScheduledTaskPrincipal -UserId $userId -LogonType ServiceAccount -RunLevel Highest
 
     # Register the task
     Register-ScheduledTask -Action $taskAction -Principal $principal -Trigger $taskTrigger -TaskName $taskName -Settings $taskSettings

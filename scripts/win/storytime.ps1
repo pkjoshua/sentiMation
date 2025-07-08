@@ -1,6 +1,8 @@
 # Define the task name and task action
+$repoPath = "C:\path\to\sentiMation" # Update to your local path
+$userId = "$env:USERDOMAIN\$env:USERNAME"
 $taskName = "Storytime_Generator"
-$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\storytime\call.py' -WorkingDirectory 'D:\sentiMation\generators\storytime'
+$taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -c python $repoPath\generators\storytime\call.py" -WorkingDirectory "$repoPath\generators\storytime"
 
 # Check if the task already exists
 $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
@@ -10,7 +12,7 @@ if (-not $taskExists) {
     Write-Host "Task does not exist. Creating new task."
     $taskTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Tuesday,Thursday,Friday,Sunday -At 7:30am
     $taskSettings = New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-    $principal = New-ScheduledTaskPrincipal -UserId "PALADIN1\josh" -LogonType ServiceAccount -RunLevel Highest
+    $principal = New-ScheduledTaskPrincipal -UserId $userId -LogonType ServiceAccount -RunLevel Highest
 
     Register-ScheduledTask -Action $taskAction -Principal $principal -Trigger $taskTrigger -TaskName $taskName -Settings $taskSettings
     Write-Host "Task created."

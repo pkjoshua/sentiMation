@@ -14,8 +14,10 @@ def read_chosen_prompt():
 
 
 # Read image file from disk
-with open("D:\\sentiMation\\generators\\sketch2life\\assets\\cn_skl.png", "rb") as image_file:
-    encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+script_dir = os.path.dirname(os.path.abspath(__file__))
+image_path = os.path.join(script_dir, "assets", "cn_skl.png")
+with open(image_path, "rb") as image_file:
+    encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
 
 # Define the API URL
 api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"

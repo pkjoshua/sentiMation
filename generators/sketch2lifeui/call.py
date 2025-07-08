@@ -26,9 +26,17 @@ def is_server_running(host="127.0.0.1", port=7860):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex((host, port)) == 0
 
+conda_path = os.environ.get("CONDA_PATH", r"C:\\path\\to\\miniconda3")
+stable_diff_path = os.environ.get("SD_WEBUI_PATH", r"C:\\path\\to\\stable-diffusion-webui")
+
 # Function to start the server
 def start_server():
-    command = "%windir%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -ExecutionPolicy ByPass -NoExit -Command \"& 'C:\\Users\\Josh\\miniconda3\\shell\\condabin\\conda-hook.ps1' ; conda activate 'C:\\Users\\Josh\\miniconda3' ; conda activate sd ; python 'D:\\stable-diffusion-webui\\launch.py'"
+    command = (
+        f"%windir%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe "
+        f"-ExecutionPolicy ByPass -NoExit -Command \"& '{conda_path}\\shell\\condabin\\conda-hook.ps1' ; "
+        f"conda activate '{conda_path}' ; conda activate sd ; "
+        f"python '{stable_diff_path}\\launch.py'\""
+    )
     subprocess.Popen(command, shell=True)
     time.sleep(30)  # Wait for the server to start
 

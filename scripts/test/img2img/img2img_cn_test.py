@@ -26,8 +26,8 @@ def reorient_image(input_path, output_path):
     img.save(output_path)
 
 # Correct the orientation
-input_path = "D:\\sentimation\\image.png"
-output_path = "D:\\sentimation\\touched_image.JPG"
+input_path = os.environ.get("TEST_IMG_INPUT", "image.png")
+output_path = os.environ.get("TEST_IMG_OUTPUT", "touched_image.JPG")
 reorient_image(input_path, output_path)
 
 # Read reoriented image file from disk
@@ -76,7 +76,7 @@ response_json = response.json()
 image_bytes = base64.b64decode(response_json['images'][0])
 
 # Define the file path
-file_path = "D:\\api_output\\img2img_cn.jpg"
+file_path = os.environ.get("IMG2IMG_OUTPUT", "img2img_cn.jpg")
 
 # Write the bytes to a file
 with open(file_path, "wb") as image_file:
