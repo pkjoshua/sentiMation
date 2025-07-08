@@ -18,7 +18,7 @@ controlnet_images = sorted(os.listdir(controlnet_dir))
 image_file_paths = [os.path.join(controlnet_dir, img) for img in controlnet_images]
 
 control_net_args = [{
-    "batch_image_dir": "D:\\sentiMation\\generators\\dogshow\\assets\\test",
+    "batch_image_dir": os.environ.get("BATCH_IMAGE_DIR", "path_to_test_images"),
     "resize_mode": "Just Resize",
     "module": "normal_bae",
     "model": "control_v11f1p_sd15_depth_fp16 [4b72d323]",

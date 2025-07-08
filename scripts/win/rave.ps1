@@ -1,6 +1,8 @@
 # Define the task name and task action
+$repoPath = "C:\path\to\sentiMation" # Update to your local path
+$userId = "$env:USERDOMAIN\$env:USERNAME"
 $taskName = "rave_Generator"
-$taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-WindowStyle Hidden -c python D:\sentiMation\generators\rave\call.py' -WorkingDirectory 'D:\sentiMation\generators\rave'
+$taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -c python $repoPath\generators\rave\call.py" -WorkingDirectory "$repoPath\generators\rave"
 
 # Check if the task already exists
 $taskExists = Get-ScheduledTask | Where-Object {$_.TaskName -eq $taskName}
@@ -14,7 +16,7 @@ if (-not $taskExists) {
     $fridayTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday -At 6am
 
     $taskSettings = New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-    $principal = New-ScheduledTaskPrincipal -UserId "PALADIN1\josh" -LogonType ServiceAccount -RunLevel Highest
+    $principal = New-ScheduledTaskPrincipal -UserId $userId -LogonType ServiceAccount -RunLevel Highest
 
     # Register the task with both triggers
     Register-ScheduledTask -Action $taskAction -Principal $principal -Trigger $saturdayTrigger, $fridayTrigger -TaskName $taskName -Settings $taskSettings

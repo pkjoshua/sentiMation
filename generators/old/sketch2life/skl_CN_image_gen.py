@@ -78,8 +78,9 @@ def process_latest_image(source_dir, used_dir):
         return None
 
 # Directories
-source_dir = r"D:\sentiMation\generators\sketch2life\assets\sketch"
-used_dir = r"D:\sentiMation\generators\sketch2life\assets\sketch\used"
+script_dir = os.path.dirname(os.path.abspath(__file__))
+source_dir = os.path.join(script_dir, "assets", "sketch")
+used_dir = os.path.join(source_dir, "used")
 
 # Process the latest image from \assets\sketch\ directory
 latest_image_encoded = process_latest_image(source_dir, used_dir)
@@ -122,7 +123,7 @@ if response.status_code == 200:
     response_json = response.json()
     base64_image = response_json['images'][0]
     image_bytes = base64.b64decode(base64_image)
-    file_path = "D:\\sentiMation\\generators\\sketch2life\\assets\\cn_skl.png"
+    file_path = os.path.join(script_dir, "assets", "cn_skl.png")
     with open(file_path, "wb") as image_file:
         image_file.write(image_bytes)
     logging.info("Image generated and saved successfully.")
