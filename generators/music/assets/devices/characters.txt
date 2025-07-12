@@ -1,0 +1,19 @@
+SONGOKU, <lora:SonGoku:1>
+LUFFY, <lora:Luffy_v2:1>
+SUPERMARIO, <lora:SuperMario:1>
+VEGETA, <lora:dbz_vegeta:1>
+RICK_SANCHEZ, <lora:rick_and_morty_characters:1>
+MORTY_SMITH, <lora:rick_and_morty_characters:1>
+KIM POSSIBLE, <lora:kim_possible_offset:1>
+UZUMAKI NARUTO, <lora:naruto uzumaki-lora-nochekaiser:1>
+UCHIHA SASUKE, <lora:Sasuke:1>
+UCHIHA ITACHI, <lora:naruto_uchihaitachi:1>
+HARUNO SAKURA, <lora:SakuraShippuden:1>
+KUROSAKI ICHIGO, <lora:bleach_kurosaki:1>
+light_yagami, <lora:light_yagami:1>
+HEY-ARNOLD, <lora:Hey-Arnold:1>
+YUJIROHANMA, <lora:YujiroHanma5:1>
+reiganarataka, <lora:Reigen:1>
+CHARMANDER_POKEMON, <lora:Charmander_Pokemon:1>
+GENGAR_POKEMON, <lora:Gengar_Pokemon_v2_Anime:1>
+SQUIRTLE_POKEMON, <lora:Squirtle_Pokemon_Combined:1>

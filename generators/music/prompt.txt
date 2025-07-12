@@ -1,0 +1,2 @@
+SAITAMA, (Saitama), (playing a cello):1.5 , (passionately):1.2 in a (sahara desert):1.2, 4k, detailed, epic, (eyes closed):1.2, (ballroom attire):1.4, formal, musician, best quality, 4k, detailed, smooth, crisp, <lora:Saitama:0.7>
+

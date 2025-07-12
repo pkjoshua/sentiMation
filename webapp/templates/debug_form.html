@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Form Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-form { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        button { padding: 10px 20px; margin: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Debug Form Test</h1>
+    
+    <div class="test-form">
+        <h3>Test Delete Form</h3>
+        <form method="POST" action="/delete/0" onsubmit="console.log('Form submitting to:', this.action); return true;">
+            <button type="submit" onclick="return confirm('Delete job 0?')">Delete Job 0</button>
+        </form>
+    </div>
+    
+    <div class="test-form">
+        <h3>Test Delete Form (Simplified)</h3>
+        <form method="POST" action="/delete/1">
+            <button type="submit" onclick="if(confirm('Delete job 1?')) { this.innerHTML='Deleting...'; this.disabled=true; return true; } else { return false; }">
+                Delete Job 1
+            </button>
+        </form>
+    </div>
+    
+    <div class="test-form">
+        <h3>Current Jobs</h3>
+        <div id="jobs-list">Loading...</div>
+    </div>
+    
+    <script>
+        // Load current jobs
+        fetch('/debug-jobs')
+            .then(response => response.json())
+            .then(data => {
+                const jobsList = document.getElementById('jobs-list');
+                jobsList.innerHTML = `<p>Jobs count: ${data.jobs_count}</p>`;
+                if (data.jobs && data.jobs.length > 0) {
+                    jobsList.innerHTML += '<ul>';
+                    data.jobs.forEach((job, index) => {
+                        jobsList.innerHTML += `<li>${index}: ${job.generator}</li>`;
+                    });
+                    jobsList.innerHTML += '</ul>';
+                } else {
+                    jobsList.innerHTML += '<p>No jobs found</p>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('jobs-list').innerHTML = `<p class="error">Error loading jobs: ${error}</p>`;
+            });
+    </script>
+    
+    <a href="/">Back to main page</a>
+</body>
+</html> 

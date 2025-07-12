@@ -1,21 +1,510 @@
-<!doctype html>
-<html>
-  <head><title>Add Job</title></head>
-  <body>
-    <h1>Add Job</h1>
-    <form method="post">
-      <label>Generator</label>
-      <select name="generator">
-        {% for g in generators %}
-        <option value="{{ g }}">{{ g }}</option>
-        {% endfor %}
-      </select><br/>
-      <label>Cron Schedule</label>
-      <input name="schedule" placeholder="*/5 * * * *"/><br/>
-      <label>Notify via Pushover</label>
-      <input type="checkbox" name="notify"/><br/>
-      <button type="submit">Save</button>
-    </form>
-    <a href="{{ url_for('index') }}">Back</a>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Job - AI Video Scheduler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: rainbow 3s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes rainbow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .header p {
+            color: #b8b8b8;
+            font-size: 1.1rem;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #888;
+        }
+
+        .schedule-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .schedule-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .schedule-option:hover {
+            border-color: #4ecdc4;
+            transform: translateY(-2px);
+        }
+
+        .schedule-option.selected {
+            border-color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.1);
+        }
+
+        .schedule-option input[type="radio"] {
+            display: none;
+        }
+
+        .schedule-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .schedule-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+
+        .schedule-desc {
+            font-size: 0.9rem;
+            color: #b8b8b8;
+        }
+
+        .schedule-details {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+
+        .schedule-details.active {
+            display: block;
+        }
+
+        .time-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .time-input input {
+            flex: 1;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .day-checkbox {
+            display: none;
+        }
+
+        .day-label {
+            display: block;
+            padding: 10px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .day-checkbox:checked + .day-label {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-color: transparent;
+            color: #000;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #4ecdc4;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4ecdc4, #45b7d1);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(78, 205, 196, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .generator-preview {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(78, 205, 196, 0.1));
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .generator-preview h4 {
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+
+        .generator-preview p {
+            color: #b8b8b8;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
+            .schedule-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .days-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Add New Job</h1>
+            <p>Schedule your next video generation task</p>
+        </div>
+
+        <div class="form-container">
+            <form method="post" id="jobForm">
+                <div class="form-group">
+                    <label class="form-label">🎬 Generator</label>
+                    <select name="generator" class="form-select" required>
+                        <option value="">Select a generator...</option>
+                        {% for g in generators %}
+                        <option value="{{ g }}">{{ g|title }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="generator-preview" id="generatorPreview" style="display: none;">
+                        <h4>Generator Preview</h4>
+                        <p>This generator will create AI-powered videos using your GPU.</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">⏰ Schedule Type</label>
+                    <div class="schedule-options">
+                        <div class="schedule-option" data-type="daily">
+                            <input type="radio" name="schedule_type" value="daily" id="daily">
+                            <label for="daily">
+                                <div class="schedule-icon">📅</div>
+                                <div class="schedule-title">Daily</div>
+                                <div class="schedule-desc">Run every day at a specific time</div>
+                            </label>
+                        </div>
+                        
+                        <div class="schedule-option" data-type="weekly">
+                            <input type="radio" name="schedule_type" value="weekly" id="weekly">
+                            <label for="weekly">
+                                <div class="schedule-icon">📆</div>
+                                <div class="schedule-title">Weekly</div>
+                                <div class="schedule-desc">Run on specific days of the week</div>
+                            </label>
+                        </div>
+                        
+                        <div class="schedule-option" data-type="monthly">
+                            <input type="radio" name="schedule_type" value="monthly" id="monthly">
+                            <label for="monthly">
+                                <div class="schedule-icon">🗓️</div>
+                                <div class="schedule-title">Monthly</div>
+                                <div class="schedule-desc">Run on a specific day each month</div>
+                            </label>
+                        </div>
+                        
+                        <div class="schedule-option" data-type="interval">
+                            <input type="radio" name="schedule_type" value="interval" id="interval">
+                            <label for="interval">
+                                <div class="schedule-icon">⏱️</div>
+                                <div class="schedule-title">Interval</div>
+                                <div class="schedule-desc">Run every X minutes</div>
+                            </label>
+                        </div>
+                        
+                        <div class="schedule-option" data-type="custom">
+                            <input type="radio" name="schedule_type" value="custom" id="custom">
+                            <label for="custom">
+                                <div class="schedule-icon">⚙️</div>
+                                <div class="schedule-title">Custom</div>
+                                <div class="schedule-desc">Advanced cron expression</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Schedule -->
+                <div class="schedule-details" id="dailyDetails">
+                    <h4>Daily Schedule</h4>
+                    <div class="time-input">
+                        <input type="time" name="daily_time" class="form-input" value="09:00">
+                        <span style="color: #b8b8b8;">Time to run each day</span>
+                    </div>
+                </div>
+
+                <!-- Weekly Schedule -->
+                <div class="schedule-details" id="weeklyDetails">
+                    <h4>Weekly Schedule</h4>
+                    <div class="time-input">
+                        <input type="time" name="weekly_time" class="form-input" value="09:00">
+                        <span style="color: #b8b8b8;">Time to run</span>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label style="color: #b8b8b8; margin-bottom: 10px; display: block;">Select days:</label>
+                        <div class="days-grid">
+                            <input type="checkbox" name="weekly_days" value="1" id="mon" class="day-checkbox">
+                            <label for="mon" class="day-label">Mon</label>
+                            
+                            <input type="checkbox" name="weekly_days" value="2" id="tue" class="day-checkbox">
+                            <label for="tue" class="day-label">Tue</label>
+                            
+                            <input type="checkbox" name="weekly_days" value="3" id="wed" class="day-checkbox">
+                            <label for="wed" class="day-label">Wed</label>
+                            
+                            <input type="checkbox" name="weekly_days" value="4" id="thu" class="day-checkbox">
+                            <label for="thu" class="day-label">Thu</label>
+                            
+                            <input type="checkbox" name="weekly_days" value="5" id="fri" class="day-checkbox">
+                            <label for="fri" class="day-label">Fri</label>
+                            
+                            <input type="checkbox" name="weekly_days" value="6" id="sat" class="day-checkbox">
+                            <label for="sat" class="day-label">Sat</label>
+                            
+                            <input type="checkbox" name="weekly_days" value="0" id="sun" class="day-checkbox">
+                            <label for="sun" class="day-label">Sun</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Schedule -->
+                <div class="schedule-details" id="monthlyDetails">
+                    <h4>Monthly Schedule</h4>
+                    <div class="time-input">
+                        <input type="time" name="monthly_time" class="form-input" value="09:00">
+                        <span style="color: #b8b8b8;">Time to run</span>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label class="form-label">Day of month:</label>
+                        <input type="number" name="monthly_day" class="form-input" value="1" min="1" max="31">
+                    </div>
+                </div>
+
+                <!-- Interval Schedule -->
+                <div class="schedule-details" id="intervalDetails">
+                    <h4>Interval Schedule</h4>
+                    <div class="time-input">
+                        <input type="number" name="interval_minutes" class="form-input" value="30" min="1" max="1440">
+                        <span style="color: #b8b8b8;">minutes between runs</span>
+                    </div>
+                </div>
+
+                <!-- Custom Schedule -->
+                <div class="schedule-details" id="customDetails">
+                    <h4>Custom Cron Expression</h4>
+                    <input type="text" name="custom_cron" class="form-input" placeholder="*/5 * * * *" value="0 9 * * *">
+                    <p style="color: #b8b8b8; font-size: 0.9rem; margin-top: 5px;">
+                        Format: minute hour day month weekday
+                    </p>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" name="notify" id="notify">
+                    <label for="notify" style="color: #b8b8b8;">🔔 Send notification when job completes</label>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                        ← Back
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        ➕ Create Job
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Schedule option selection
+        document.querySelectorAll('.schedule-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                document.querySelectorAll('.schedule-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Hide all schedule details
+                document.querySelectorAll('.schedule-details').forEach(detail => {
+                    detail.classList.remove('active');
+                });
+                
+                // Show selected schedule details
+                const scheduleType = this.querySelector('input').value;
+                const detailsElement = document.getElementById(scheduleType + 'Details');
+                if (detailsElement) {
+                    detailsElement.classList.add('active');
+                }
+            });
+        });
+
+        // Generator selection preview
+        document.querySelector('select[name="generator"]').addEventListener('change', function() {
+            const preview = document.getElementById('generatorPreview');
+            if (this.value) {
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        });
+
+        // Form validation
+        document.getElementById('jobForm').addEventListener('submit', function(e) {
+            const scheduleType = document.querySelector('input[name="schedule_type"]:checked');
+            if (!scheduleType) {
+                e.preventDefault();
+                alert('Please select a schedule type');
+                return;
+            }
+
+            if (scheduleType.value === 'weekly') {
+                const selectedDays = document.querySelectorAll('input[name="weekly_days"]:checked');
+                if (selectedDays.length === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one day for weekly schedule');
+                    return;
+                }
+            }
+        });
+
+        // Auto-select first schedule option
+        document.querySelector('.schedule-option').click();
+    </script>
+</body>
 </html>
