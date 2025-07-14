@@ -83,6 +83,11 @@
             transition: all 0.3s ease;
         }
 
+        .form-select option {
+            background: #1a1a2e;
+            color: #ffffff;
+        }
+
         .form-input:focus, .form-select:focus {
             outline: none;
             border-color: #4ecdc4;
@@ -434,6 +439,11 @@
                 <div class="checkbox-group">
                     <input type="checkbox" name="notify" id="notify">
                     <label for="notify" style="color: #b8b8b8;">🔔 Send notification when job completes</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" name="run_immediately" id="run_immediately">
+                    <label for="run_immediately" style="color: #b8b8b8;">⚡ Run job immediately after creation</label>
                 </div>
 
                 <div class="form-actions">

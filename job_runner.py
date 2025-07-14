@@ -3,6 +3,11 @@ import subprocess
 import os
 from pathlib import Path
 import notifier
+import sys
+
+# Add the webapp directory to the path so we can import config
+sys.path.append(str(Path(__file__).parent / "webapp"))
+from config import SD_ENV_VARS
 
 
 parser = argparse.ArgumentParser(description="Run a generator job")
@@ -16,9 +21,20 @@ if not call_script.is_file():
 
 print(f"Running generator {args.generator}...")
 env = dict(os.environ)
+
+# Add SD API configuration to environment
+env.update(SD_ENV_VARS)
+
 if args.notify:
     env["NOTIFY_AFTER"] = "1"
-result = subprocess.run(["python3", str(call_script)], env=env)
+
+# Change to the generator directory before running the script
+generator_dir = Path(__file__).parent / "generators" / args.generator
+os.chdir(generator_dir)
+print(f"Changed working directory to: {os.getcwd()}")
+print(f"SD API URL: {env.get('SD_TXT2IMG_URL')}")
+
+result = subprocess.run(["python3", str(call_script)], env=env, cwd=generator_dir)
 
 if result.returncode != 0:
     print(f"Generator {args.generator} exited with code {result.returncode}")

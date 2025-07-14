@@ -8,7 +8,8 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 logging.basicConfig(filename=os.path.join(script_dir, 'gen.log'), level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 
 # Define the API URL
-api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
+from sd_api_config import get_api_url
+api_url = get_api_url('txt2img')
 
 # Updated paths to directly use selected_video.mp4 and selected_prompt.txt
 generation_dir = os.path.join(script_dir, "assets/generations")

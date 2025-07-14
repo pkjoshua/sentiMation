@@ -87,6 +87,7 @@ def add_job():
             gen = request.form['generator']
             schedule_type = request.form['schedule_type']
             notify = bool(request.form.get('notify'))
+            run_immediately = bool(request.form.get('run_immediately'))
             
             # Build schedule data based on type
             schedule_data = {}
@@ -127,11 +128,25 @@ def add_job():
                 'schedule_type': schedule_type,
                 'schedule_data': schedule_data,
                 'notify': notify,
+                'run_immediately': run_immediately,
                 'created_at': datetime.now().isoformat()
             })
             save_jobs(jobs)
             
-            flash(f'Job "{gen}" scheduled successfully!', 'success')
+            # Run job immediately if requested
+            if run_immediately:
+                try:
+                    import subprocess
+                    command = f'python3 {APP_ROOT}/job_runner.py {gen}'
+                    if notify:
+                        command += ' --notify'
+                    subprocess.Popen(command.split(), cwd=APP_ROOT)
+                    flash(f'Job "{gen}" scheduled successfully and started immediately!', 'success')
+                except Exception as e:
+                    flash(f'Job "{gen}" scheduled successfully, but failed to start immediately: {str(e)}', 'error')
+            else:
+                flash(f'Job "{gen}" scheduled successfully!', 'success')
+            
             return redirect(url_for('index'))
             
         except Exception as e:

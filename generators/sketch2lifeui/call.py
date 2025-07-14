@@ -12,12 +12,15 @@ import notifier
 import shutil
 import socket
 
+# Determine the directory of the current script to make paths relative to it
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
 # Set up main logging
-logging.basicConfig(filename='gen.log', level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+logging.basicConfig(filename=os.path.join(script_dir, 'gen.log'), level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 
 # Set up generation time logging
 gentime_logger = logging.getLogger('gentime_logger')
-gentime_handler = logging.FileHandler('gentime.log')
+gentime_handler = logging.FileHandler(os.path.join(script_dir, 'gentime.log'))
 gentime_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
 gentime_logger.addHandler(gentime_handler)
 gentime_logger.setLevel(logging.INFO)
@@ -65,8 +68,9 @@ def reorient_image(input_path):
 
 # Function to clear contents of a directory
 def clear_directory(directory):
-    for filename in os.listdir(directory):
-        file_path = os.path.join(directory, filename)
+    full_dir = os.path.join(script_dir, directory)  # Adjust directory path
+    for filename in os.listdir(full_dir):
+        file_path = os.path.join(full_dir, filename)
         try:
             if os.path.isfile(file_path) or os.path.islink(file_path):
                 os.unlink(file_path)
@@ -77,7 +81,8 @@ def clear_directory(directory):
 
 # Function to run a script and log its output
 def run_script(script_name):
-    result = subprocess.run(['python', script_name], capture_output=True, text=True)
+    script_path = os.path.join(script_dir, script_name)  # Adjust script path
+    result = subprocess.run(['python3', script_path], capture_output=True, text=True)
     if result.returncode == 0:
         logging.info(f"{script_name} finished successfully.")
         logging.info("Output: %s", result.stdout)
@@ -91,7 +96,7 @@ def execute_scripts():
     for dir_name in ['generations', 'init', 'inputs', 'lowscale', 'upscale', 'upscale_generations']:
         clear_directory(os.path.join('assets/', dir_name))
     # Directory where input files will be stored
-    input_dir = 'assets/inputs'
+    input_dir = os.path.join(script_dir, 'assets/inputs')
     os.makedirs(input_dir, exist_ok=True)
 
     # Retrieve input values

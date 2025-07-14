@@ -59,7 +59,8 @@ def process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_
     clip.write_videofile(os.path.join(upscale_generations_dir, os.path.basename(video_path)), codec="libx264")
 
 # API configuration
-api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
+from sd_api_config import get_api_url
+api_url = get_api_url('img2img')
 headers = {"Content-Type": "application/json"}
 
 # Define the JSON payload with upscaling script args

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Video Scheduler - GPU Management</title>
+    <title>sentiMation - Turn your imagination into reality</title>
     <style>
         * {
             margin: 0;
@@ -341,8 +341,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>AI Video Scheduler</h1>
-            <p>Manage your GPU-powered video generation tasks</p>
+            <h1>sentiMation</h1>
+            <p>Turn your imagination into reality</p>
         </div>
 
         <!-- Flash Messages -->
@@ -375,15 +375,10 @@
                 <div class="stat-number">{{ jobs|map(attribute='generator')|unique|list|length }}</div>
                 <div class="stat-label">Unique Generators</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number">GPU</div>
-                <div class="stat-label">Ready for Gaming</div>
-            </div>
+
         </div>
 
-        <div class="image-placeholder">
-            🎮 GPU Status: Available for Gaming & Video Generation
-        </div>
+
 
         <div class="jobs-section">
             <h2 class="section-title">Scheduled Jobs</h2>
@@ -405,7 +400,7 @@
                         </div>
                         {% endif %}
                         <div class="job-actions">
-                            <form method="POST" action="{{ url_for('delete_job', job_id=loop.index0) }}" style="display: inline;">
+                            <form method="POST" action="/delete/{{ loop.index0 }}" style="display: inline;">
                                 <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete {{ job.generator|title }}? This action cannot be undone.')">
                                     🗑️ Delete
                                 </button>
@@ -453,18 +448,7 @@
             });
         });
 
-        // Add loading state to delete buttons after form submission
-        document.querySelectorAll('.btn-danger').forEach(btn => {
-            btn.addEventListener('click', function() {
-                // Add a small delay to let the form submit first
-                setTimeout(() => {
-                    if (this.type === 'submit') {
-                        this.innerHTML = '🔄 Deleting...';
-                        this.disabled = true;
-                    }
-                }, 100);
-            });
-        });
+
 
         // Debug: Log form submissions
         document.querySelectorAll('form').forEach(form => {
@@ -473,13 +457,7 @@
             });
         });
 
-        // Add loading state to buttons
-        document.querySelectorAll('button[type="submit"]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                this.innerHTML = '🔄 Processing...';
-                this.disabled = true;
-            });
-        });
+
 
         // Real-time stats update (simulated)
         function updateStats() {

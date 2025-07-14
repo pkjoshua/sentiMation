@@ -25,6 +25,42 @@ Manual execution is still possible via:
 python job_runner.py <generator> [--notify]
 ```
 
+## Configuration
+
+### Automatic1111 API Settings
+
+The application uses environment variables to configure the connection to your Automatic1111 instance. These are managed through a `.env` file:
+
+1. **Copy the example configuration:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Edit the `.env` file** with your Automatic1111 settings:
+   ```bash
+   # For local development (default)
+   SD_HOST=127.0.0.1
+   SD_PORT=7860
+   
+   # For containerized deployment
+   SD_HOST=host.docker.internal
+   SD_PORT=7860
+   
+   # For remote Automatic1111 instance
+   SD_HOST=your-server-ip.com
+   SD_PORT=7860
+   ```
+
+3. **Test the configuration:**
+   ```bash
+   python test_sd_config.py
+   ```
+
+### Environment Variables
+
+- `SD_HOST`: The hostname or IP address of your Automatic1111 instance
+- `SD_PORT`: The port number (default: 7860)
+
 ## Notes
 
 Default paths and user names have been replaced with placeholders. Replace any `C:\path\to\...` entries with values appropriate for your environment before running.
