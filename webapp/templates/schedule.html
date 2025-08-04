@@ -1,0 +1,529 @@
+{% extends "base.html" %}
+
+{% block title %}SentiMation - Schedule Generation{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2">
+                <i class="fas fa-calendar-plus me-2"></i>
+                Schedule Generation
+            </h1>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-plus me-2"></i>
+                    New Generation Task
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="schedule-form">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="generator_type" class="form-label">
+                                <i class="fas fa-cog me-1"></i>
+                                Generator Type
+                            </label>
+                            <select class="form-select" id="generator_type" name="generator_type" required>
+                                <option value="">Select a generator...</option>
+                                <option value="music">Music Generator</option>
+                                <option value="scenario">Scenario Generator</option>
+                            </select>
+                            <div class="form-text">
+                                Choose the type of animation to generate
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="scheduled_time" class="form-label">
+                                <i class="fas fa-clock me-1"></i>
+                                Scheduled Time
+                            </label>
+                            <input type="datetime-local" class="form-control" id="scheduled_time" name="scheduled_time">
+                            <div class="form-text">
+                                When should this generation start? (Leave empty for recurring tasks)
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_recurring" name="is_recurring">
+                                <label class="form-check-label" for="is_recurring">
+                                    <i class="fas fa-redo me-1"></i>
+                                    Make this a recurring task
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="recurring_options" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar-week me-1"></i>
+                                    Days of the Week
+                                </label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="recurring_days" value="monday" id="day_monday">
+                                    <label class="form-check-label" for="day_monday">Monday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="recurring_days" value="tuesday" id="day_tuesday">
+                                    <label class="form-check-label" for="day_tuesday">Tuesday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="recurring_days" value="wednesday" id="day_wednesday">
+                                    <label class="form-check-label" for="day_wednesday">Wednesday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="recurring_days" value="thursday" id="day_thursday">
+                                    <label class="form-check-label" for="day_thursday">Thursday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="recurring_days" value="friday" id="day_friday">
+                                    <label class="form-check-label" for="day_friday">Friday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="recurring_days" value="saturday" id="day_saturday">
+                                    <label class="form-check-label" for="day_saturday">Saturday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="recurring_days" value="sunday" id="day_sunday">
+                                    <label class="form-check-label" for="day_sunday">Sunday</label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="recurring_time" class="form-label">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Time
+                                </label>
+                                <input type="time" class="form-control" id="recurring_time" name="recurring_time">
+                                <div class="form-text">
+                                    What time should the task run on selected days?
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="prompt_select" class="form-label">
+                                <i class="fas fa-list me-1"></i>
+                                Activity/Prompt
+                            </label>
+                            <select class="form-select" id="prompt_select" name="prompt_select" required>
+                                <option value="">Select a generator type first...</option>
+                            </select>
+                            <div class="form-text">
+                                Choose a generator type above to see available activities
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="prompt_preview" class="form-label">
+                                <i class="fas fa-eye me-1"></i>
+                                Prompt Preview
+                            </label>
+                            <div class="form-control-plaintext" id="prompt_preview" style="min-height: 60px; background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 0.375rem; padding: 0.375rem 0.75rem;">
+                                <em class="text-muted">Select an activity to see the prompt...</em>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="prompt" name="prompt" value="">
+                    
+
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-outline-secondary me-md-2" onclick="resetForm()">
+                            <i class="fas fa-undo me-1"></i>
+                            Reset
+                        </button>
+                        <button type="button" class="btn btn-success me-md-2" onclick="runTaskNow()" id="run_now_btn" disabled>
+                            <i class="fas fa-play me-1"></i>
+                            Run Now
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>
+                            Schedule Task
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Generator Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="generator-info">
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-question-circle fa-3x mb-3"></i>
+                        <p>Select a generator type to see more information</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    Generation Settings
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-video text-primary me-2"></i>
+                        <strong>Video Length:</strong> 150 frames (7.5 seconds)
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-expand text-primary me-2"></i>
+                        <strong>Resolution:</strong> 360x640 (portrait)
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-film text-primary me-2"></i>
+                        <strong>FPS:</strong> 20
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-magic text-primary me-2"></i>
+                        <strong>Model:</strong> animatediffMotion_v15V2.ckpt
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-sliders-h text-primary me-2"></i>
+                        <strong>Sampler:</strong> DPM++ 2M Karras
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-steps text-primary me-2"></i>
+                        <strong>Steps:</strong> 20
+                    </li>
+                    <li>
+                        <i class="fas fa-balance-scale text-primary me-2"></i>
+                        <strong>CFG Scale:</strong> 10
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default scheduled time to 5 minutes from now
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 5);
+    const localDateTime = now.toISOString().slice(0, 16);
+    document.getElementById('scheduled_time').value = localDateTime;
+    
+    // Add event listeners
+    document.getElementById('generator_type').addEventListener('change', function() {
+        updateGeneratorInfo();
+        loadPrompts();
+        
+        // Check if Run Now button should be enabled
+        const generatorType = this.value;
+        const promptSelect = document.getElementById('prompt_select');
+        const runNowBtn = document.getElementById('run_now_btn');
+        
+        if (generatorType && promptSelect.value) {
+            runNowBtn.disabled = false;
+        } else {
+            runNowBtn.disabled = true;
+        }
+    });
+    
+    document.getElementById('prompt_select').addEventListener('change', updatePromptPreview);
+    
+    document.getElementById('is_recurring').addEventListener('change', toggleRecurringOptions);
+    
+    // Add form submission handler
+    document.getElementById('schedule-form').addEventListener('submit', handleFormSubmit);
+});
+
+function updateGeneratorInfo() {
+    const generatorType = document.getElementById('generator_type').value;
+    const infoDiv = document.getElementById('generator-info');
+    
+    const generatorInfo = {
+        'music': {
+            title: 'Music Generator',
+            icon: 'fas fa-music',
+            description: 'Creates animations of characters playing various instruments',
+            instruments: ['Guitar', 'Piano', 'Violin', 'Drums', 'Bass', 'Flute', 'Saxophone', 'Trumpet', 'Harp', 'Accordion', 'Ukulele', 'Cello', 'Clarinet', 'Harmonica', 'Banjo'],
+            environments: ['Concert halls', 'Music studios', 'Jazz clubs', 'Outdoor stages']
+        },
+        'scenario': {
+            title: 'Scenario Generator',
+            icon: 'fas fa-palette',
+            description: 'Creates animations of characters in various activities',
+            activities: ['Cooking', 'Reading', 'Painting', 'Gardening', 'Exercising', 'Studying', 'Dancing', 'Photography', 'Writing', 'Meditation'],
+            environments: ['Kitchens', 'Libraries', 'Studios', 'Gardens', 'Gyms']
+        }
+    };
+    
+    if (generatorType && generatorInfo[generatorType]) {
+        const info = generatorInfo[generatorType];
+        infoDiv.innerHTML = `
+            <div class="text-center mb-3">
+                <i class="${info.icon} fa-3x text-primary"></i>
+                <h5 class="mt-2">${info.title}</h5>
+                <p class="text-muted">${info.description}</p>
+            </div>
+            
+            <div class="mb-3">
+                <h6><i class="fas fa-list me-1"></i>Available Activities:</h6>
+                <div class="d-flex flex-wrap gap-1">
+                    ${info.activities ? info.activities.map(activity => 
+                        `<span class="badge bg-light text-dark">${activity}</span>`
+                    ).join('') : ''}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <h6><i class="fas fa-map-marker-alt me-1"></i>Environments:</h6>
+                <div class="d-flex flex-wrap gap-1">
+                    ${info.environments.map(env => 
+                        `<span class="badge bg-info">${env}</span>`
+                    ).join('')}
+                </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-lightbulb me-1"></i>
+                <strong>Tip:</strong> Prompts are pre-configured and use placeholders like [CHARACTER], [ENVIRONMENT], [LORA], and [ACTIVATOR] for dynamic content.
+            </div>
+        `;
+    } else {
+        infoDiv.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-question-circle fa-3x mb-3"></i>
+                <p>Select a generator type to see more information</p>
+            </div>
+        `;
+    }
+}
+
+function toggleRecurringOptions() {
+    const isRecurring = document.getElementById('is_recurring').checked;
+    const recurringOptions = document.getElementById('recurring_options');
+    const scheduledTimeField = document.getElementById('scheduled_time');
+    
+    if (isRecurring) {
+        recurringOptions.style.display = 'block';
+        scheduledTimeField.required = false;
+        scheduledTimeField.disabled = true;
+    } else {
+        recurringOptions.style.display = 'none';
+        scheduledTimeField.required = true;
+        scheduledTimeField.disabled = false;
+    }
+}
+
+function handleFormSubmit(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData);
+    
+    // Validate form
+    if (!data.generator_type || !data.prompt) {
+        alert('Please select a generator type and activity');
+        return;
+    }
+    
+    const isRecurring = data.is_recurring === 'on';
+    
+    if (isRecurring) {
+        // Validate recurring task fields
+        const recurringDays = formData.getAll('recurring_days');
+        if (recurringDays.length === 0) {
+            alert('Please select at least one day of the week for recurring tasks');
+            return;
+        }
+        if (!data.recurring_time) {
+            alert('Please select a time for recurring tasks');
+            return;
+        }
+    } else {
+        // Validate one-time task fields
+        if (!data.scheduled_time) {
+            alert('Please select a scheduled time for one-time tasks');
+            return;
+        }
+        
+        // Validate scheduled time is in the future
+        const scheduledTime = new Date(data.scheduled_time);
+        const now = new Date();
+        if (scheduledTime <= now) {
+            alert('Scheduled time must be in the future');
+            return;
+        }
+    }
+    
+    // Submit form
+    event.target.submit();
+}
+
+async function loadPrompts() {
+    const generatorType = document.getElementById('generator_type').value;
+    const promptSelect = document.getElementById('prompt_select');
+    const promptPreview = document.getElementById('prompt_preview');
+    
+    // Reset prompts
+    promptSelect.innerHTML = '<option value="">Select an activity...</option>';
+    promptPreview.innerHTML = '<em class="text-muted">Select an activity to see the prompt...</em>';
+    document.getElementById('prompt').value = '';
+    
+    if (!generatorType) {
+        promptSelect.innerHTML = '<option value="">Select a generator type first...</option>';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/prompts/${generatorType}`);
+        const prompts = await response.json();
+        
+        prompts.forEach(prompt => {
+            const option = document.createElement('option');
+            option.value = prompt.content;
+            option.textContent = prompt.name;
+            option.dataset.filename = prompt.filename;
+            option.dataset.isRandom = prompt.is_random || false;
+            promptSelect.appendChild(option);
+        });
+        
+        if (prompts.length === 0) {
+            promptSelect.innerHTML = '<option value="">No prompts available</option>';
+        }
+    } catch (error) {
+        console.error('Error loading prompts:', error);
+        promptSelect.innerHTML = '<option value="">Error loading prompts</option>';
+    }
+}
+
+function updatePromptPreview() {
+    const promptSelect = document.getElementById('prompt_select');
+    const promptPreview = document.getElementById('prompt_preview');
+    const promptHidden = document.getElementById('prompt');
+    const runNowBtn = document.getElementById('run_now_btn');
+    
+    if (promptSelect.value) {
+        if (promptSelect.value === 'RANDOM_ACTIVITY') {
+            promptPreview.innerHTML = `<strong>🎲 Random Activity</strong><br><small class="text-muted">A random activity will be selected when the task runs</small>`;
+            promptHidden.value = 'RANDOM_ACTIVITY';
+        } else {
+            promptPreview.innerHTML = `<strong>${promptSelect.options[promptSelect.selectedIndex].text}</strong><br><small class="text-muted">${promptSelect.value}</small>`;
+            promptHidden.value = promptSelect.value;
+        }
+        
+        // Enable Run Now button if generator type is also selected
+        const generatorType = document.getElementById('generator_type').value;
+        if (generatorType) {
+            runNowBtn.disabled = false;
+        }
+    } else {
+        promptPreview.innerHTML = '<em class="text-muted">Select an activity to see the prompt...</em>';
+        promptHidden.value = '';
+        runNowBtn.disabled = true;
+    }
+}
+
+function resetForm() {
+    if (confirm('Are you sure you want to reset the form?')) {
+        document.getElementById('schedule-form').reset();
+        
+        // Reset scheduled time to 5 minutes from now
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 5);
+        const localDateTime = now.toISOString().slice(0, 16);
+        document.getElementById('scheduled_time').value = localDateTime;
+        
+        // Reset recurring options
+        document.getElementById('recurring_options').style.display = 'none';
+        document.getElementById('scheduled_time').disabled = false;
+        document.getElementById('scheduled_time').required = true;
+        
+        // Reset generator info and prompts
+        updateGeneratorInfo();
+        document.getElementById('prompt_select').innerHTML = '<option value="">Select a generator type first...</option>';
+        document.getElementById('prompt_preview').innerHTML = '<em class="text-muted">Select an activity to see the prompt...</em>';
+        document.getElementById('prompt').value = '';
+        
+        // Disable Run Now button
+        document.getElementById('run_now_btn').disabled = true;
+    }
+}
+
+async function runTaskNow() {
+    // Get form data
+    const formData = new FormData(document.getElementById('schedule-form'));
+    const data = Object.fromEntries(formData);
+    
+    // Validate form
+    if (!data.generator_type || !data.prompt) {
+        alert('Please select a generator type and activity');
+        return;
+    }
+    
+    if (confirm('Are you sure you want to run this task immediately?')) {
+        try {
+            // Create a temporary task for immediate execution
+            const response = await fetch('/schedule', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            if (response.ok) {
+                // Get the task ID from the response
+                const result = await response.json();
+                if (result.task_id) {
+                    // Run the task immediately
+                    const runResponse = await fetch(`/run_now/${result.task_id}`);
+                    const runResult = await runResponse.json();
+                    
+                    if (runResponse.ok) {
+                        alert('Task started successfully! Check the dashboard to monitor progress.');
+                        window.location.href = '/';
+                    } else {
+                        alert(`Error starting task: ${runResult.error}`);
+                    }
+                }
+            } else {
+                const error = await response.json();
+                alert(`Error creating task: ${error.error}`);
+            }
+        } catch (error) {
+            console.error('Error running task:', error);
+            alert('Error running task. Please try again.');
+        }
+    }
+}
+</script>
+{% endblock %} 
