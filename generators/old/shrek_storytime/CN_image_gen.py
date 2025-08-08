@@ -15,7 +15,7 @@ def read_prompts_from_file(file_path):
     return prompts
 
 # Define the API URL
-api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
+api_url = "http://host.docker.internal:7860/sdapi/v1/txt2img"
 
 # Process and save the image
 def process_and_save_image(base64_image, file_index, output_dir):

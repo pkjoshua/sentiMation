@@ -52,7 +52,7 @@ def upscale_images(lowscale_dir, upscale_dir, api_url, headers, json_payload_tem
             logging.error(f"Failed to upscale image: {image_file}")
 
 # API configuration
-api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
+api_url = "http://host.docker.internal:7860/sdapi/v1/img2img"
 headers = {"Content-Type": "application/json"}
 
 # Adjusted paths

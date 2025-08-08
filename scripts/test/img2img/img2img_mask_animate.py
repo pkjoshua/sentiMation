@@ -55,7 +55,7 @@ animate_diff_args = {
 
 
 # Define the API URL and payload
-api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
+api_url = "http://host.docker.internal:7860/sdapi/v1/img2img"
 json_payload = {
     "prompt": "A detailed mandala with symmetrical patterns, creating a hypnotic effect, digital painting, pixiv, concept art, 3d, by Simon Cowell, Ricardo Ow and Tom Cross",
     "negative_prompt": "bad quality, deformed, boring",

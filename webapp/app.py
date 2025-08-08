@@ -3,8 +3,7 @@ import os
 import sys
 import json
 import logging
-import requests
-import base64
+import subprocess
 import random
 from datetime import datetime, timedelta
 import threading
@@ -32,11 +31,10 @@ logger = logging.getLogger(__name__)
 scheduled_tasks = {}
 task_counter = 0
 
-# Import configuration
-from config import SD_API_URL
+
 
 class GenerationTask:
-    def __init__(self, task_id, generator_type, prompt, scheduled_time, status="pending", is_recurring=False, recurring_days=None, recurring_time=None):
+    def __init__(self, task_id, generator_type, prompt, scheduled_time, status="pending", is_recurring=False, recurring_days=None, recurring_time=None, character=None, environment=None):
         self.task_id = task_id
         self.generator_type = generator_type
         self.prompt = prompt
@@ -48,99 +46,14 @@ class GenerationTask:
         self.is_recurring = is_recurring
         self.recurring_days = recurring_days or []
         self.recurring_time = recurring_time
+        # Custom generator specific fields
+        self.character = character
+        self.environment = environment
 
-def encode_image_to_base64(image_path):
-    """Encode image to base64 for API calls"""
-    try:
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
-    except Exception as e:
-        logger.error(f"Error encoding image {image_path}: {e}")
-        return None
 
-def call_stable_diffusion_api(prompt, controlnet_image_path=None):
-    """Make API call to Stable Diffusion"""
-    try:
-        # Encode controlnet image if provided
-        encoded_image = None
-        if controlnet_image_path and os.path.exists(controlnet_image_path):
-            encoded_image = encode_image_to_base64(controlnet_image_path)
-        
-        if not encoded_image:
-            # Use a default image or create one
-            logger.warning("No controlnet image provided, using default")
-            return None
-
-        animate_diff_args = {
-            "model": "animatediffMotion_v15V2.ckpt",
-            "format": ['MP4'],
-            "enable": True,
-            "video_length": 150,
-            "fps": 20,
-            "loop_number": 0,
-            "closed_loop": "N",
-            "batch_size": 16,
-            "stride": 1,
-            "overlap": -1,
-            "interp": "NO",
-            "interp_x": 10,
-            "latent_power": 0.5,
-            "latent_scale": 32,
-            "last_frame": encoded_image,
-            "latent_power_last": 0.5,
-            "latent_scale_last": 32
-        }
-
-        json_payload = {
-            "init_images": [encoded_image],
-            "denoising_strength": 0.9,
-            "prompt": prompt,
-            "negative_prompt": "bad quality, deformed, boring, pixelated, blurry, unclear, artifact, nude, nsfw",
-            "batch_size": 1,
-            "sampler_name": "DPM++ 2M Karras",
-            "steps": 20,
-            "cfg_scale": 10,
-            "width": 360,
-            "height": 640,
-            "alwayson_scripts": {
-                "AnimateDiff": {"args": [animate_diff_args]}
-            }
-        }
-
-        logger.info(f"Making API call with prompt: {prompt}")
-        response = requests.post(SD_API_URL, headers={"Content-Type": "application/json"}, json=json_payload)
-
-        if response.status_code == 200:
-            r = response.json()
-            if 'images' in r and r['images']:
-                base64_data = r['images'][0]
-                mp4_data = base64.b64decode(base64_data)
-                
-                # Save the generated video
-                output_dir = Path("webapp/static/generated")
-                output_dir.mkdir(exist_ok=True)
-                
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                output_path = output_dir / f"generation_{timestamp}.mp4"
-                
-                with open(output_path, 'wb') as file:
-                    file.write(mp4_data)
-                
-                logger.info(f"MP4 file saved as {output_path}")
-                return str(output_path)
-            else:
-                logger.error("No image data found in the response")
-                return None
-        else:
-            logger.error(f"API call failed. Status Code: {response.status_code}, Response: {response.text}")
-            return None
-            
-    except Exception as e:
-        logger.error(f"Error in API call: {e}")
-        return None
 
 def execute_scheduled_task(task_id):
-    """Execute a scheduled generation task"""
+    """Execute a scheduled generation task by calling the appropriate generator script"""
     global scheduled_tasks
     
     if task_id not in scheduled_tasks:
@@ -149,61 +62,101 @@ def execute_scheduled_task(task_id):
     
     task = scheduled_tasks[task_id]
     task.status = "running"
+    logger.info(f"Starting task {task_id}: {task.generator_type} - {task.prompt}")
     
     try:
-        logger.info(f"Executing task {task_id}: {task.generator_type} - {task.prompt}")
+        # Determine the generator directory
+        generator_dir = f"../generators/{task.generator_type}"
         
-        # Handle random activity selection
-        if task.prompt == "RANDOM_ACTIVITY":
-            # Select a random prompt from the generator's prompt directory
-            prompts_dir = Path(f"../generators/{task.generator_type}/assets/prompts")
-            if prompts_dir.exists():
-                prompt_files = list(prompts_dir.glob("*.txt"))
-                if prompt_files:
-                    selected_prompt_file = random.choice(prompt_files)
-                    with open(selected_prompt_file, 'r', encoding='utf-8') as f:
-                        task.prompt = f.read().strip()
-                    logger.info(f"Selected random prompt: {selected_prompt_file.name}")
-                else:
-                    task.status = "failed"
-                    task.error_message = "No prompt files found for random selection"
-                    logger.error(f"Task {task_id} failed: No prompt files found")
-                    return
-            else:
-                task.status = "failed"
-                task.error_message = f"Prompt directory not found: {prompts_dir}"
-                logger.error(f"Task {task_id} failed: Prompt directory not found")
-                return
+        if not os.path.exists(generator_dir):
+            raise Exception(f"Generator directory not found: {generator_dir}")
         
-        # Get a controlnet image from the appropriate generator
-        controlnet_dir = f"../generators/{task.generator_type}/assets/init"
-        if os.path.exists(controlnet_dir):
-            controlnet_images = sorted(os.listdir(controlnet_dir))
-            if controlnet_images:
-                controlnet_image_path = os.path.join(controlnet_dir, controlnet_images[0])
-                result_path = call_stable_diffusion_api(task.prompt, controlnet_image_path)
-                
-                if result_path:
-                    task.result_path = result_path
-                    task.status = "completed"
-                    logger.info(f"Task {task_id} completed successfully")
-                else:
-                    task.status = "failed"
-                    task.error_message = "API call failed"
-                    logger.error(f"Task {task_id} failed")
+        # Change to the generator directory
+        original_cwd = os.getcwd()
+        os.chdir(generator_dir)
+        
+        try:
+            # Handle random activity selection
+            if task.prompt == "RANDOM_ACTIVITY":
+                logger.info(f"Using random activity for {task.generator_type}")
+                # For random activity, we'll let the selector.py handle everything
+                pass
             else:
-                task.status = "failed"
-                task.error_message = "No controlnet images found"
-                logger.error(f"Task {task_id} failed: No controlnet images")
-        else:
-            task.status = "failed"
-            task.error_message = f"Controlnet directory not found: {controlnet_dir}"
-            logger.error(f"Task {task_id} failed: Controlnet directory not found")
+                # For specific activities, we need to create a custom prompt file
+                # This would require modifying the workflow to accept specific prompts
+                logger.info(f"Specific activity selected: {task.prompt}")
+                # For now, we'll use the random workflow and log the selected prompt
+                pass
             
+            # Run the generator call script
+            logger.info(f"Running call.py in {generator_dir}")
+            
+            # For custom generator, pass specific parameters
+            if task.generator_type == "custom" and hasattr(task, 'character') and hasattr(task, 'environment'):
+                if task.character and task.environment and task.prompt and task.prompt != "RANDOM_ACTIVITY":
+                    logger.info(f"Running custom generator with: character={task.character}, environment={task.environment}, prompt={task.prompt}")
+                    result = subprocess.run(
+                        ['python', 'call.py', task.character, task.environment, task.prompt],
+                        capture_output=True,
+                        text=True,
+                        timeout=3600  # 1 hour timeout
+                    )
+                else:
+                    logger.info("Running custom generator with random selection")
+                    result = subprocess.run(
+                        ['python', 'call.py'],
+                        capture_output=True,
+                        text=True,
+                        timeout=3600  # 1 hour timeout
+                    )
+            else:
+                # Regular generator types (music, scenario)
+                result = subprocess.run(
+                    ['python', 'call.py'],
+                    capture_output=True,
+                    text=True,
+                    timeout=3600  # 1 hour timeout
+                )
+            
+            if result.returncode == 0:
+                task.status = "completed"
+                # Look for the generated video file
+                output_dir = "assets/upscale_generations"
+                if os.path.exists(output_dir):
+                    video_files = [f for f in os.listdir(output_dir) if f.endswith(('.mp4', '.avi', '.mov'))]
+                    if video_files:
+                        # Sort by modification time to get the most recent
+                        video_files.sort(key=lambda x: os.path.getmtime(os.path.join(output_dir, x)), reverse=True)
+                        task.result_path = os.path.join(output_dir, video_files[0])
+                        logger.info(f"Task {task_id} completed successfully: {task.result_path}")
+                    else:
+                        task.status = "failed"
+                        task.error_message = "No video file generated"
+                        logger.error(f"Task {task_id} failed: No video file found in {output_dir}")
+                else:
+                    task.status = "failed"
+                    task.error_message = "Output directory not found"
+                    logger.error(f"Task {task_id} failed: Output directory {output_dir} not found")
+            else:
+                task.status = "failed"
+                task.error_message = f"Generator script failed: {result.stderr}"
+                logger.error(f"Task {task_id} failed: {result.stderr}")
+                
+        finally:
+            # Always restore the original working directory
+            os.chdir(original_cwd)
+            
+    except subprocess.TimeoutExpired:
+        task.status = "failed"
+        task.error_message = "Task timed out after 1 hour"
+        logger.error(f"Task {task_id} timed out")
     except Exception as e:
         task.status = "failed"
         task.error_message = str(e)
-        logger.error(f"Task {task_id} failed with exception: {e}")
+        logger.error(f"Task {task_id} failed with error: {e}")
+    
+    # Update task in global dict
+    scheduled_tasks[task_id] = task
 
 def schedule_task_execution(task_id, scheduled_time, is_recurring=False, recurring_days=None, recurring_time=None):
     """Schedule a task to execute at the specified time"""
@@ -271,6 +224,13 @@ def schedule_generation():
             task_counter += 1
             task_id = f"task_{task_counter}"
             
+            # Get custom generator parameters if applicable
+            character = None
+            environment = None
+            if generator_type == "custom":
+                character = request.form.get('character')
+                environment = request.form.get('environment')
+            
             task = GenerationTask(
                 task_id=task_id,
                 generator_type=generator_type,
@@ -278,7 +238,9 @@ def schedule_generation():
                 scheduled_time=scheduled_time,
                 is_recurring=is_recurring,
                 recurring_days=recurring_days,
-                recurring_time=recurring_time_str
+                recurring_time=recurring_time_str,
+                character=character,
+                environment=environment
             )
             
             scheduled_tasks[task_id] = task
@@ -308,7 +270,7 @@ def get_tasks():
     """Get all scheduled tasks"""
     tasks_data = []
     for task_id, task in scheduled_tasks.items():
-        tasks_data.append({
+        task_data = {
             'id': task_id,
             'generator_type': task.generator_type,
             'prompt': task.prompt,
@@ -320,7 +282,15 @@ def get_tasks():
             'is_recurring': task.is_recurring,
             'recurring_days': task.recurring_days,
             'recurring_time': task.recurring_time
-        })
+        }
+        
+        # Add custom generator fields if they exist
+        if hasattr(task, 'character') and task.character:
+            task_data['character'] = task.character
+        if hasattr(task, 'environment') and task.environment:
+            task_data['environment'] = task.environment
+            
+        tasks_data.append(task_data)
     
     return jsonify(tasks_data)
 
@@ -331,7 +301,7 @@ def get_task(task_id):
         return jsonify({'error': 'Task not found'}), 404
     
     task = scheduled_tasks[task_id]
-    return jsonify({
+    task_data = {
         'id': task_id,
         'generator_type': task.generator_type,
         'prompt': task.prompt,
@@ -343,7 +313,15 @@ def get_task(task_id):
         'is_recurring': task.is_recurring,
         'recurring_days': task.recurring_days,
         'recurring_time': task.recurring_time
-    })
+    }
+    
+    # Add custom generator fields if they exist
+    if hasattr(task, 'character') and task.character:
+        task_data['character'] = task.character
+    if hasattr(task, 'environment') and task.environment:
+        task_data['environment'] = task.environment
+        
+    return jsonify(task_data)
 
 @app.route('/cancel/<task_id>')
 def cancel_task(task_id):
@@ -425,6 +403,29 @@ def get_characters(generator_type):
             logger.error(f"Error reading characters file: {e}")
     
     return jsonify(characters)
+
+@app.route('/environments/<generator_type>')
+def get_environments(generator_type):
+    """Get available environments for a specific generator"""
+    environments = []
+    environments_file = Path(f"../generators/{generator_type}/assets/devices/environments.txt")
+    
+    if environments_file.exists():
+        try:
+            with open(environments_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        parts = line.split(',')
+                        if len(parts) >= 1:
+                            environments.append({
+                                'name': parts[0].strip(),
+                                'lora': parts[1].strip() if len(parts) > 1 else ''
+                            })
+        except Exception as e:
+            logger.error(f"Error reading environments file: {e}")
+    
+    return jsonify(environments)
 
 @app.route('/prompts/<generator_type>')
 def get_prompts(generator_type):

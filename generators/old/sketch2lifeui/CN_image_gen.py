@@ -40,7 +40,7 @@ def save_image_from_response(image_data, output_dir, image_index):
     logging.info(f"Image saved: {file_path}")
 
 # API and JSON Payload configuration
-api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
+api_url = "http://host.docker.internal:7860/sdapi/v1/txt2img"
 
 # Directory to save generated images
 output_dir = 'assets/init'

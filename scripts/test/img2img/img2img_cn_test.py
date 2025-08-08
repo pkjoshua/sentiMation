@@ -35,7 +35,7 @@ with open(output_path, "rb") as image_file:
     encoded_image = base64.b64encode(image_file.read()).decode()
 
 # Define the API URL
-api_url = "http://127.0.0.1:7860/sdapi/v1/img2img"
+api_url = "http://host.docker.internal:7860/sdapi/v1/img2img"
 
 # Define the JSON payload
 json_payload = {

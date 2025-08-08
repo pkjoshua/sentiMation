@@ -39,6 +39,7 @@
                                 <option value="">Select a generator...</option>
                                 <option value="music">Music Generator</option>
                                 <option value="scenario">Scenario Generator</option>
+                                <option value="custom">Custom Generator</option>
                             </select>
                             <div class="form-text">
                                 Choose the type of animation to generate
@@ -147,6 +148,49 @@
                     
                     <input type="hidden" id="prompt" name="prompt" value="">
                     
+                    <!-- Custom Generator Options (only shown when custom generator is selected) -->
+                    <div id="custom_options" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="character_select" class="form-label">
+                                    <i class="fas fa-user me-1"></i>
+                                    Character
+                                </label>
+                                <select class="form-select" id="character_select" name="character">
+                                    <option value="">Select a character...</option>
+                                </select>
+                                <div class="form-text">
+                                    Choose the character for your animation
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="environment_select" class="form-label">
+                                    <i class="fas fa-globe me-1"></i>
+                                    Environment
+                                </label>
+                                <select class="form-select" id="environment_select" name="environment">
+                                    <option value="">Select an environment...</option>
+                                </select>
+                                <div class="form-text">
+                                    Choose the environment/setting
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="prompt_name" class="form-label">
+                                    <i class="fas fa-scroll me-1"></i>
+                                    Activity Type
+                                </label>
+                                <select class="form-select" id="prompt_name" name="prompt_name">
+                                    <option value="">Select an activity...</option>
+                                </select>
+                                <div class="form-text">
+                                    Choose the type of activity
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -244,8 +288,18 @@ document.addEventListener('DOMContentLoaded', function() {
         updateGeneratorInfo();
         loadPrompts();
         
-        // Check if Run Now button should be enabled
+        // Show/hide custom options based on generator type
         const generatorType = this.value;
+        const customOptions = document.getElementById('custom_options');
+        
+        if (generatorType === 'custom') {
+            customOptions.style.display = 'block';
+            loadCustomOptions();
+        } else {
+            customOptions.style.display = 'none';
+        }
+        
+        // Check if Run Now button should be enabled
         const promptSelect = document.getElementById('prompt_select');
         const runNowBtn = document.getElementById('run_now_btn');
         
@@ -384,6 +438,18 @@ function handleFormSubmit(event) {
         }
     }
     
+    // Validate custom generator fields
+    if (data.generator_type === 'custom') {
+        if (!data.character || !data.environment || !data.prompt_name) {
+            alert('For custom generator, please select a character, environment, and activity type');
+            return;
+        }
+        
+        // Set the prompt to the selected prompt name for custom generator
+        const promptInput = document.getElementById('prompt');
+        promptInput.value = data.prompt_name;
+    }
+    
     // Submit form
     event.target.submit();
 }
@@ -422,6 +488,63 @@ async function loadPrompts() {
     } catch (error) {
         console.error('Error loading prompts:', error);
         promptSelect.innerHTML = '<option value="">Error loading prompts</option>';
+    }
+}
+
+async function loadCustomOptions() {
+    const generatorType = document.getElementById('generator_type').value;
+    
+    if (generatorType !== 'custom') {
+        return;
+    }
+    
+    try {
+        // Load characters
+        const charactersResponse = await fetch(`/characters/${generatorType}`);
+        const characters = await charactersResponse.json();
+        
+        const characterSelect = document.getElementById('character_select');
+        characterSelect.innerHTML = '<option value="">Select a character...</option>';
+        
+        characters.forEach(character => {
+            const option = document.createElement('option');
+            option.value = character.name;
+            option.textContent = character.name;
+            characterSelect.appendChild(option);
+        });
+        
+        // Load environments
+        const environmentsResponse = await fetch(`/environments/${generatorType}`);
+        const environments = await environmentsResponse.json();
+        
+        const environmentSelect = document.getElementById('environment_select');
+        environmentSelect.innerHTML = '<option value="">Select an environment...</option>';
+        
+        environments.forEach(environment => {
+            const option = document.createElement('option');
+            option.value = environment.name;
+            option.textContent = environment.name;
+            environmentSelect.appendChild(option);
+        });
+        
+        // Load activity types (prompts)
+        const promptsResponse = await fetch(`/prompts/${generatorType}`);
+        const prompts = await promptsResponse.json();
+        
+        const promptNameSelect = document.getElementById('prompt_name');
+        promptNameSelect.innerHTML = '<option value="">Select an activity...</option>';
+        
+        prompts.forEach(prompt => {
+            if (prompt.filename) { // Only add non-random activities
+                const option = document.createElement('option');
+                option.value = prompt.filename.replace('.txt', ''); // Remove .txt extension
+                option.textContent = prompt.name;
+                promptNameSelect.appendChild(option);
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error loading custom options:', error);
     }
 }
 
@@ -472,6 +595,14 @@ function resetForm() {
         document.getElementById('prompt_select').innerHTML = '<option value="">Select a generator type first...</option>';
         document.getElementById('prompt_preview').innerHTML = '<em class="text-muted">Select an activity to see the prompt...</em>';
         document.getElementById('prompt').value = '';
+        
+        // Hide custom options
+        document.getElementById('custom_options').style.display = 'none';
+        
+        // Reset custom selects
+        document.getElementById('character_select').innerHTML = '<option value="">Select a character...</option>';
+        document.getElementById('environment_select').innerHTML = '<option value="">Select an environment...</option>';
+        document.getElementById('prompt_name').innerHTML = '<option value="">Select an activity...</option>';
         
         // Disable Run Now button
         document.getElementById('run_now_btn').disabled = true;

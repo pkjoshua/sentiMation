@@ -20,7 +20,7 @@ with open(image_path, "rb") as image_file:
     encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
 
 # Define the API URL
-api_url = "http://127.0.0.1:7860/sdapi/v1/txt2img"
+api_url = "http://host.docker.internal:7860/sdapi/v1/txt2img"
 
 # Controlnet arguments
 control_net_args = {
