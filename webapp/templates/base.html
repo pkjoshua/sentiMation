@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -19,7 +20,11 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item me-3">
+                        <span class="badge" id="host-status-badge"><i class="fas fa-server me-1"></i>Host</span>
+                        <span class="badge ms-1" id="sd-status-badge"><i class="fas fa-robot me-1"></i>A1111</span>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}">
                             <i class="fas fa-home me-1"></i>Dashboard
@@ -49,6 +54,26 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function setBadge(el, ok) {
+        el.className = 'badge ' + (ok ? 'bg-success' : 'bg-danger');
+    }
+    async function pollHealth() {
+        try {
+            const res = await fetch('/healthz');
+            const data = await res.json();
+            setBadge(document.getElementById('host-status-badge'), !!data.host_service);
+            setBadge(document.getElementById('sd-status-badge'), !!data.auto1111);
+        } catch (e) {
+            setBadge(document.getElementById('host-status-badge'), false);
+            setBadge(document.getElementById('sd-status-badge'), false);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        pollHealth();
+        setInterval(pollHealth, 15000);
+    });
+    </script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>

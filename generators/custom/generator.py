@@ -7,7 +7,7 @@ import os
 logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 # Define the API URL
-api_url = "http://host.docker.internal:7860/sdapi/v1/img2img"
+api_url = os.getenv("AUTO1111_API", "http://host.docker.internal:7860/sdapi/v1/img2img")
 
 # Function to encode image to base64
 def encode_image_to_base64(image_path):
@@ -26,6 +26,18 @@ os.makedirs(generation_dir, exist_ok=True)
 controlnet_images = sorted(os.listdir(controlnet_dir))
 prompts = read_prompts("prompt.txt")
 
+# Overrides from env
+try:
+    OV_VIDEO_LENGTH = int(os.getenv("GEN_VIDEO_LENGTH", "150"))
+    OV_FPS = int(os.getenv("GEN_FPS", "20"))
+    OV_WIDTH = int(os.getenv("GEN_WIDTH", "360"))
+    OV_HEIGHT = int(os.getenv("GEN_HEIGHT", "640"))
+except Exception:
+    OV_VIDEO_LENGTH = 150
+    OV_FPS = 20
+    OV_WIDTH = 360
+    OV_HEIGHT = 640
+
 for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
     encoded_image = encode_image_to_base64(os.path.join(controlnet_dir, image_name))
     prompt_text = prompt.strip()
@@ -34,8 +46,8 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
         "model": "animatediffMotion_v15V2.ckpt",
         "format": ['MP4'],
         "enable": True,
-        "video_length": 150,
-        "fps": 20,
+        "video_length": OV_VIDEO_LENGTH,
+        "fps": OV_FPS,
         "loop_number": 0,
         "closed_loop": "N",
         "batch_size": 16,
@@ -59,14 +71,14 @@ for index, (image_name, prompt) in enumerate(zip(controlnet_images, prompts)):
         "sampler_name": "DPM++ 2M Karras",
         "steps": 20,
         "cfg_scale": 10,
-        "width": 360,
-        "height": 640,
+        "width": OV_WIDTH,
+        "height": OV_HEIGHT,
         "alwayson_scripts": {
             "AnimateDiff": {"args": [animate_diff_args]}
         }
     }
 
-    logging.info(f"Generating with prompt: {prompt_text}")
+    logging.info(f"Generating with prompt: {prompt_text} ({OV_WIDTH}x{OV_HEIGHT} @ {OV_FPS}fps len {OV_VIDEO_LENGTH})")
 
     response = requests.post(api_url, headers={"Content-Type": "application/json"}, json=json_payload)
 

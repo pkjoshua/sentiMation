@@ -9,6 +9,18 @@ import cv2
 # Initialize logging
 logging.basicConfig(filename="gen.log", level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
+# Overrides from env
+try:
+    BASE_WIDTH = int(os.getenv("GEN_WIDTH", "360"))
+    BASE_HEIGHT = int(os.getenv("GEN_HEIGHT", "640"))
+except Exception:
+    BASE_WIDTH = 360
+    BASE_HEIGHT = 640
+
+UPSCALE_WIDTH = BASE_WIDTH * 2
+UPSCALE_HEIGHT = BASE_HEIGHT * 2
+
+
 def upscale_frame(frame_path, api_url, headers, json_payload_template):
     with open(frame_path, "rb") as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
@@ -28,6 +40,7 @@ def upscale_frame(frame_path, api_url, headers, json_payload_template):
         logging.error(f"API call failed for {frame_path}. Status Code: {response.status_code}, Response: {response.text}")
         return None
 
+
 def extract_frames(video_path, output_dir):
     vidcap = cv2.VideoCapture(video_path)
     success, image = vidcap.read()
@@ -41,6 +54,7 @@ def extract_frames(video_path, output_dir):
     
     fps = vidcap.get(cv2.CAP_PROP_FPS)
     return count, fps  # Return the total number of frames extracted and the fps
+
 
 def create_video_from_frames(frame_folder, output_video_path, fps):
     frame_files = sorted([os.path.join(frame_folder, file) for file in os.listdir(frame_folder) if file.endswith('.png')])
@@ -58,6 +72,7 @@ def create_video_from_frames(frame_folder, output_video_path, fps):
         out.write(frame)
     out.release()
 
+
 def process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_payload_template):
     frame_count, fps = extract_frames(video_path, lowscale_dir)
     for i in range(frame_count):
@@ -72,7 +87,7 @@ def process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_
     create_video_from_frames(upscale_dir, output_video_path, fps)
 
 # API configuration
-api_url = "http://host.docker.internal:7860/sdapi/v1/img2img"
+api_url = os.getenv("AUTO1111_API", "http://host.docker.internal:7860/sdapi/v1/img2img")
 headers = {"Content-Type": "application/json"}
 
 # Define the JSON payload with upscaling script args
@@ -86,13 +101,13 @@ json_payload_template = {
     "cfg_scale": 7,
     "denoising_strength": 0.3,
     "save_images": True,
-    "width": 720,
-    "height": 1280,
+    "width": UPSCALE_WIDTH,
+    "height": UPSCALE_HEIGHT,
     "script_name": "ultimate sd upscale",
     "script_args": [
         None,           # _ (not used)
-        360,            # tile_width
-        640,            # tile_height
+        BASE_WIDTH,     # tile_width
+        BASE_HEIGHT,    # tile_height
         8,              # mask_blur
         32,             # padding
         64,             # seams_fix_width
@@ -105,8 +120,8 @@ json_payload_template = {
         8,              # seams_fix_mask_blur
         0,              # seams_fix_type
         0,              # target_size_type
-        720,            # custom_width
-        1280,           # custom_height
+        UPSCALE_WIDTH,  # custom_width
+        UPSCALE_HEIGHT, # custom_height
         2               # custom_scale
     ]
 }
@@ -125,7 +140,7 @@ os.makedirs(upscale_generations_dir, exist_ok=True)
 for video_file in sorted(os.listdir(generations_dir)):
     video_path = os.path.join(generations_dir, video_file)
     if video_path.endswith('.mp4'):
-        logging.info(f"Processing video: {video_path}")
+        logging.info(f"Processing video: {video_path} to {UPSCALE_WIDTH}x{UPSCALE_HEIGHT}")
         process_video(video_path, lowscale_dir, upscale_dir, api_url, headers, json_payload_template)
         # Clear lowscale and upscale directories for next video
         for folder in [lowscale_dir, upscale_dir]:

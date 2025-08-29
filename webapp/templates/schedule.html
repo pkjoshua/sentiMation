@@ -35,12 +35,7 @@
                                 <i class="fas fa-cog me-1"></i>
                                 Generator Type
                             </label>
-                            <select class="form-select" id="generator_type" name="generator_type" required>
-                                <option value="">Select a generator...</option>
-                                <option value="music">Music Generator</option>
-                                <option value="scenario">Scenario Generator</option>
-                                <option value="custom">Custom Generator</option>
-                            </select>
+                            <select class="form-select" id="generator_type" name="generator_type" required></select>
                             <div class="form-text">
                                 Choose the type of animation to generate
                             </div>
@@ -127,7 +122,7 @@
                                 <i class="fas fa-list me-1"></i>
                                 Activity/Prompt
                             </label>
-                            <select class="form-select" id="prompt_select" name="prompt_select" required>
+                            <select class="form-select" id="prompt_select" name="prompt" required>
                                 <option value="">Select a generator type first...</option>
                             </select>
                             <div class="form-text">
@@ -146,7 +141,7 @@
                         </div>
                     </div>
                     
-                    <input type="hidden" id="prompt" name="prompt" value="">
+                    <input type="hidden" id="prompt_hidden" name="prompt_hidden" value="">
                     
                     <!-- Custom Generator Options (only shown when custom generator is selected) -->
                     <div id="custom_options" style="display: none;">
@@ -177,17 +172,36 @@
                                 </div>
                             </div>
                             
-                            <div class="col-md-4 mb-3">
-                                <label for="prompt_name" class="form-label">
-                                    <i class="fas fa-scroll me-1"></i>
-                                    Activity Type
+                            
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="video_length" class="form-label">
+                                    <i class="fas fa-video me-1"></i>
+                                    Length (frames)
                                 </label>
-                                <select class="form-select" id="prompt_name" name="prompt_name">
-                                    <option value="">Select an activity...</option>
-                                </select>
-                                <div class="form-text">
-                                    Choose the type of activity
-                                </div>
+                                <input type="number" min="1" class="form-control" id="video_length" name="video_length" value="150">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="fps" class="form-label">
+                                    <i class="fas fa-film me-1"></i>
+                                    FPS
+                                </label>
+                                <input type="number" min="1" class="form-control" id="fps" name="fps" value="20">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="width" class="form-label">
+                                    <i class="fas fa-arrows-alt-h me-1"></i>
+                                    Width
+                                </label>
+                                <input type="number" min="64" step="1" class="form-control" id="width" name="width" value="360">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="height" class="form-label">
+                                    <i class="fas fa-arrows-alt-v me-1"></i>
+                                    Height
+                                </label>
+                                <input type="number" min="64" step="1" class="form-control" id="height" name="height" value="640">
                             </div>
                         </div>
                     </div>
@@ -283,6 +297,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const localDateTime = now.toISOString().slice(0, 16);
     document.getElementById('scheduled_time').value = localDateTime;
     
+    // Load generator types dynamically
+    loadGeneratorTypes();
+
     // Add event listeners
     document.getElementById('generator_type').addEventListener('change', function() {
         updateGeneratorInfo();
@@ -317,6 +334,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add form submission handler
     document.getElementById('schedule-form').addEventListener('submit', handleFormSubmit);
 });
+async function loadGeneratorTypes() {
+    const sel = document.getElementById('generator_type');
+    sel.innerHTML = '<option value="">Loading generators...</option>';
+    try {
+        const res = await fetch('/generators');
+        const gens = await res.json();
+        if (!Array.isArray(gens) || gens.length === 0) {
+            sel.innerHTML = '<option value="">No generators detected</option>';
+            return;
+        }
+        sel.innerHTML = '<option value="">Select a generator...</option>' +
+            gens.map(g => `<option value="${g}">${g.charAt(0).toUpperCase() + g.slice(1)} Generator</option>`).join('');
+    } catch (e) {
+        sel.innerHTML = '<option value="">Error loading generators</option>';
+    }
+}
 
 function updateGeneratorInfo() {
     const generatorType = document.getElementById('generator_type').value;
@@ -440,14 +473,10 @@ function handleFormSubmit(event) {
     
     // Validate custom generator fields
     if (data.generator_type === 'custom') {
-        if (!data.character || !data.environment || !data.prompt_name) {
-            alert('For custom generator, please select a character, environment, and activity type');
+        if (!data.character || !data.environment) {
+            alert('For custom generator, please select a character and environment');
             return;
         }
-        
-        // Set the prompt to the selected prompt name for custom generator
-        const promptInput = document.getElementById('prompt');
-        promptInput.value = data.prompt_name;
     }
     
     // Submit form
@@ -462,7 +491,7 @@ async function loadPrompts() {
     // Reset prompts
     promptSelect.innerHTML = '<option value="">Select an activity...</option>';
     promptPreview.innerHTML = '<em class="text-muted">Select an activity to see the prompt...</em>';
-    document.getElementById('prompt').value = '';
+    document.getElementById('prompt_hidden').value = '';
     
     if (!generatorType) {
         promptSelect.innerHTML = '<option value="">Select a generator type first...</option>';
@@ -528,20 +557,7 @@ async function loadCustomOptions() {
         });
         
         // Load activity types (prompts)
-        const promptsResponse = await fetch(`/prompts/${generatorType}`);
-        const prompts = await promptsResponse.json();
-        
-        const promptNameSelect = document.getElementById('prompt_name');
-        promptNameSelect.innerHTML = '<option value="">Select an activity...</option>';
-        
-        prompts.forEach(prompt => {
-            if (prompt.filename) { // Only add non-random activities
-                const option = document.createElement('option');
-                option.value = prompt.filename.replace('.txt', ''); // Remove .txt extension
-                option.textContent = prompt.name;
-                promptNameSelect.appendChild(option);
-            }
-        });
+        // Removed prompt_name population (single activity select is used)
         
     } catch (error) {
         console.error('Error loading custom options:', error);
@@ -551,7 +567,7 @@ async function loadCustomOptions() {
 function updatePromptPreview() {
     const promptSelect = document.getElementById('prompt_select');
     const promptPreview = document.getElementById('prompt_preview');
-    const promptHidden = document.getElementById('prompt');
+    const promptHidden = document.getElementById('prompt_hidden');
     const runNowBtn = document.getElementById('run_now_btn');
     
     if (promptSelect.value) {

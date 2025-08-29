@@ -33,7 +33,16 @@ A modern web interface for scheduling and managing AI-powered animation generati
 
 ## Quick Start
 
-### 1. Start the Web Application
+### 1. Start the Host Service (Windows)
+```bash
+# Run as Administrator in PowerShell
+cd scripts/win
+.\host_service.ps1
+```
+
+The host service will start listening on `http://+:7070/` for job requests.
+
+### 2. Start the Web Application
 
 ```bash
 # From the project root directory
@@ -76,10 +85,29 @@ http://localhost:5000
 - `GET /cancel/<task_id>` - Cancel a pending task
 - `GET /run_now/<task_id>` - Run a pending task immediately
 
+### Host Service
+- `GET /host-service/status` - Check host service availability and configuration
+
 ### Generator Information
 - `GET /generators` - Get available generators (JSON)
 
 ## Configuration
+
+### Host Service Integration
+The web app integrates with a Windows host service for job scheduling and execution:
+
+- **Host Service URL**: `http://host.docker.internal:7070` (default)
+- **Endpoints**:
+  - `POST /schedule` - Schedule jobs with Windows Task Scheduler
+  - `POST /run-now` - Execute jobs immediately
+
+The host service handles:
+- Docker container execution
+- Windows Task Scheduler integration
+- Job logging and monitoring
+- Automatic retry logic
+
+**Setup**: Run `scripts/win/host_service.ps1` as Administrator on Windows.
 
 ### Stable Diffusion API
 The web app connects to Stable Diffusion WebUI at:
@@ -115,6 +143,29 @@ webapp/
 │   └── generated/        # Generated videos (created automatically)
 └── README.md            # This file
 ```
+
+## Testing
+
+### Host Service Integration
+Test the host service integration using the provided test script:
+
+```bash
+cd webapp
+python test_host_service.py
+```
+
+This will test:
+- Connection to the host service
+- Job creation and specification
+- Job scheduling
+- Immediate job execution
+
+### Manual Testing
+1. Start the host service on Windows
+2. Start the web application
+3. Check host service status: `GET /host-service/status`
+4. Create a scheduled job
+5. Test immediate execution with "Run Now"
 
 ## Development
 
